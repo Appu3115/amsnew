@@ -15,7 +15,7 @@ public class EmployeeShifts {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
-	private String EmployeId;
+	private String employeeId;
 	private String shiftId;
 	private LocalDateTime startDate;
 	private LocalDateTime endDate;
@@ -26,10 +26,10 @@ public class EmployeeShifts {
 		this.id = id;
 	}
 	public String getEmployeId() {
-		return EmployeId;
+		return employeeId;
 	}
 	public void setEmployeId(String employeId) {
-		EmployeId = employeId;
+		employeeId = employeId;
 	}
 	public String getShiftId() {
 		return shiftId;

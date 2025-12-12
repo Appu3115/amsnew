@@ -48,7 +48,7 @@ public class AttendanceService {
     	   
     	   Attendance attendance=new Attendance();
     	   attendance.setEmployeeId(request.getEmployeeId());
-    	 //  attendance.setShiftId(shiftId);
+    	  attendance.setShiftId(shiftId);
     	   attendance.setLogin(time);
     	   attendance.setStatus("Logged In");
     	   

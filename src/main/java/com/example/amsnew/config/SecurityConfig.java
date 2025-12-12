@@ -82,7 +82,11 @@ public class SecurityConfig {
                             "/swagger-resources/**",
                             "/webjars/**",
                             // optionally actuator health if you want public
-                            "/actuator/health"
+                            "/actuator/health",
+                            "/attendance/login",
+                            "/attendance/logout/*",
+                            "/attendance/*",
+                            "/department/**"
                         ).permitAll()
                 .anyRequest().authenticated()
             )
@@ -113,4 +117,6 @@ public class SecurityConfig {
 
         return new CorsFilter(source);
     }
+    
+   
 }
