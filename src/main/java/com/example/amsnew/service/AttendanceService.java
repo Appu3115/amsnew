@@ -12,6 +12,7 @@ import com.example.amsnew.dto.LoginRequest;
 import com.example.amsnew.model.Attendance;
 import com.example.amsnew.model.EmployeeShifts;
 import com.example.amsnew.repository.AttendanceRepository;
+import com.example.amsnew.repository.EmployeeShiftsRepository;
 
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 
