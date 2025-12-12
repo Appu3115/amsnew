@@ -21,8 +21,8 @@ public class AttendanceService {
        @Autowired
        private AttendanceRepository attendanceRepo;
        
-      // @Autowired
-      // private EmployeeShiftRepository employeeShiftRepo;
+       @Autowired
+       private EmployeeShiftsRepository employeeShiftsRepo;
        
        public ResponseEntity<?> login( LoginRequest request)
        {
@@ -34,15 +34,15 @@ public class AttendanceService {
     	   
            LocalDateTime time=LocalDateTime.now();
            
-         //  List<EmployeeShifts> shifts=employeeShiftRepo.findByEmployeeId(empId);
+          List<EmployeeShifts> shifts=employeeShiftsRepo.findByEmployeeId(empId);
            
            String shiftId=null;
            
-//           if(!shifts.isEmpty())
-//           {
-//        	   EmployeeShifts lastShift=shifts.get(shifts.size()-1);
-//        	   shiftId=lastShift.getShiftId();
-//           }
+           if(!shifts.isEmpty())
+           {
+        	   EmployeeShifts lastShift=shifts.get(shifts.size()-1);
+        	   shiftId=lastShift.getShiftId();
+           }
 
     	   
     	   Attendance attendance=new Attendance();
