@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.amsnew.dto.LoginRequest;
 import com.example.amsnew.model.Attendance;
 import com.example.amsnew.service.AttendanceService;
 
@@ -24,7 +25,7 @@ public class AttendanceController {
 	private AttendanceService attendanceService;
 	
 	@PostMapping("/login")
-	public ResponseEntity<?> login(@RequestBody Attendance request)
+	public ResponseEntity<?> login(@RequestBody LoginRequest request)
 	{
 		return attendanceService.login(request);
 	}

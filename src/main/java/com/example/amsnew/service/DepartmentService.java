@@ -34,4 +34,15 @@ public class DepartmentService {
     	 departmentRepo.deleteById(id);
     	 return "Department deleted successfully";
      }
+     public Department updateDepartment(int id,Department newDept)
+     {
+    	 Department oldDept=departmentRepo.findById(id).orElse(null);
+    	 
+    	 if(oldDept != null)
+    	 {
+    		 oldDept.setDept_name(newDept.getDept_name());
+    		 return departmentRepo.save(oldDept);
+    	 }
+    	 return null;
+     }
 }

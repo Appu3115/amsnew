@@ -8,8 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.example.amsnew.dto.LoginRequest;
 import com.example.amsnew.model.Attendance;
+import com.example.amsnew.model.EmployeeShifts;
 import com.example.amsnew.repository.AttendanceRepository;
+
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 
 
 @Service
@@ -17,29 +21,33 @@ public class AttendanceService {
        @Autowired
        private AttendanceRepository attendanceRepo;
        
-       public ResponseEntity<?> login(Attendance request)
+      // @Autowired
+      // private EmployeeShiftRepository employeeShiftRepo;
+       
+       public ResponseEntity<?> login( LoginRequest request)
        {
-    	   if(request == null)
-    	   {
-    		   return ResponseEntity.badRequest().body("Request Body is missing");
-    	   }
-    	   String empId =trimOrNull(request.getEmployeeId());
-    	   if(empId == null || empId.isEmpty())
+    	   if(request == null || request.getEmployeeId() == null ||request.getEmployeeId().trim().isEmpty())
     	   {
     		   return ResponseEntity.badRequest().body("Employee ID is required");
     	   }
+    	   String empId =request.getEmployeeId();
     	   
-    	   LocalDateTime time=LocalDateTime.now();
-    	   LocalDateTime todaystart=time.toLocalDate().atStartOfDay();
-    	   
-    	   if(attendanceRepo.existsByEmployeeIdAndLogin(empId, todaystart))
-    	   {
-    		   return ResponseEntity.badRequest().body("Employee has already logged in today");
-    	   }
+           LocalDateTime time=LocalDateTime.now();
+           
+         //  List<EmployeeShifts> shifts=employeeShiftRepo.findByEmployeeId(empId);
+           
+           String shiftId=null;
+           
+//           if(!shifts.isEmpty())
+//           {
+//        	   EmployeeShifts lastShift=shifts.get(shifts.size()-1);
+//        	   shiftId=lastShift.getShiftId();
+//           }
+
     	   
     	   Attendance attendance=new Attendance();
-    	   attendance.setEmployeeId(empId);
-    	   attendance.setShiftId(request.getShiftId());
+    	   attendance.setEmployeeId(request.getEmployeeId());
+    	 //  attendance.setShiftId(shiftId);
     	   attendance.setLogin(time);
     	   attendance.setStatus("Logged In");
     	   
@@ -70,9 +78,9 @@ public class AttendanceService {
     	   attendance.setLogout(time);
     	   attendance.setStatus("Logged out");
     	   
-    	   attendanceRepo.save(attendance);
+    	   Attendance saved=attendanceRepo.save(attendance);
     	   
-    	   return ResponseEntity.ok(attendance);
+    	   return ResponseEntity.ok(saved);
        }
        
        public List<Attendance> getAttendanceByEmployee(String employeeId)
@@ -80,8 +88,5 @@ public class AttendanceService {
     	   return attendanceRepo.findByEmployeeId(employeeId);
        }
        
-       private String trimOrNull(String value)
-       {
-    	   return value == null? null:value.trim();
-       }
+      
 }
