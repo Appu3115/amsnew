@@ -1,5 +1,6 @@
 package com.example.amsnew.model;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Entity;
@@ -18,12 +19,10 @@ public class Attendance {
 	private Long id;
 	@NotNull
 	private String employeeId;
-	private String shiftId;
+	private LocalDate attendanceDate;
 	private LocalDateTime login;
 	private LocalDateTime logout;
 	private String status;
-	private LocalDateTime late;
-	private LocalDateTime overtime;
 	
 	
 	public Long getId() {
@@ -38,11 +37,11 @@ public class Attendance {
 	public void setEmployeeId(String employeeId) {
 		this.employeeId = employeeId;
 	}
-	public String getShiftId() {
-		return shiftId;
+	public LocalDate getAttendanceDate() {
+		return attendanceDate;
 	}
-	public void setShiftId(String shiftId) {
-		this.shiftId = shiftId;
+	public void setAttendanceDate(LocalDate attendanceDate) {
+		this.attendanceDate = attendanceDate;
 	}
 	public LocalDateTime getLogin() {
 		return login;
@@ -62,18 +61,9 @@ public class Attendance {
 	public void setStatus(String status) {
 		this.status = status;
 	}
-	public LocalDateTime getLate() {
-		return late;
-	}
-	public void setLate(LocalDateTime late) {
-		this.late = late;
-	}
-	public LocalDateTime getOvertime() {
-		return overtime;
-	}
-	public void setOvertime(LocalDateTime overtime) {
-		this.overtime = overtime;
-	}
+	
+	
+	
 	
 	
 }
