@@ -40,7 +40,7 @@ public class DepartmentService {
     	 
     	 if(oldDept != null)
     	 {
-    		 oldDept.setDept_name(newDept.getDept_name());
+    		 oldDept.setDeptName(newDept.getDeptName());
     		 return departmentRepo.save(oldDept);
     	 }
     	 return null;

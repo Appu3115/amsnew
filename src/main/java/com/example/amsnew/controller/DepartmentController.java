@@ -1,5 +1,4 @@
 package com.example.amsnew.controller;
-
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,13 +7,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;   
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.amsnew.dto.DepartmentRequest;
 import com.example.amsnew.model.Department;
 import com.example.amsnew.service.DepartmentService;
 
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 
 @RestController
 @RequestMapping("/department")
@@ -24,8 +24,12 @@ public class DepartmentController {
 	private DepartmentService departmentService;
 	
 	@PostMapping("/add")
-	public Department addDepartment(@RequestBody Department dept)
+	public Department addDepartment(@RequestBody DepartmentRequest request)
 	{
+		System.out.print("DepTName:"+request.getDeptName());
+		Department dept=new Department();
+		dept.setDeptName(request.getDeptName());
+		
 		return departmentService.saveDepartment(dept);
 	}
 	
