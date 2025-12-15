@@ -29,6 +29,7 @@ public class LeaveRequestService {
         if (request.getStatus() == null) {
             request.setStatus("pending");
         }
+        request.setRequestDate(LocalDate.now());
         return repo.save(request);
     }
 
@@ -46,7 +47,8 @@ public class LeaveRequestService {
                 .orElseThrow(() -> new RuntimeException("Leave not found"));
         leave.setStatus("approved");
         leave.setApprovedDate(LocalDate.now());
-        return repo.save(leave);
+        repo.save(leave);
+        return leave;
     }
 
     public LeaveRequest rejectLeave(int id) {
@@ -59,5 +61,10 @@ public class LeaveRequestService {
 
     public List<LeaveRequest> getLeaveStatus(String approved) {
         return  repo.findAllByStatus(approved);
+    }
+
+    public LeaveRequest getLeaveById(int id) {
+        LeaveRequest leave = repo.findById((long) id).orElseThrow(() -> new RuntimeException("Leave not found"));
+        return leave;
     }
 }

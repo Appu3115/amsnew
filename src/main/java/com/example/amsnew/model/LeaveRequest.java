@@ -3,14 +3,8 @@ package com.example.amsnew.model;
 import java.time.LocalDate;
 
 
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name="leaverequest")
@@ -19,15 +13,22 @@ public class LeaveRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @NotNull
     @ManyToOne
     @JoinColumn(name = "employee_id")
     private Employees employee;
-    private String leaveType;
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private LeaveType leaveType;
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private LeaveReason reason;
     private LocalDate requestDate;
-    private String reason;
+    @NotNull
     private LocalDate startDate;
+    @NotNull
     private LocalDate endDate;
-    private String status;       // pending, approved, rejected
+    private String status;
     private LocalDate approvedDate;
 
     public LeaveRequest() {}
@@ -49,11 +50,11 @@ public class LeaveRequest {
         this.employee = employee;
     }
 
-    public String getLeaveType() {
+    public LeaveType getLeaveType() {
         return leaveType;
     }
 
-    public void setLeaveType(String leaveType) {
+    public void setLeaveType(LeaveType leaveType) {
         this.leaveType = leaveType;
     }
 
@@ -65,11 +66,11 @@ public class LeaveRequest {
         this.requestDate = requestDate;
     }
 
-    public String getReason() {
+    public LeaveReason getReason() {
         return reason;
     }
 
-    public void setReason(String reason) {
+    public void setReason(LeaveReason reason) {
         this.reason = reason;
     }
 

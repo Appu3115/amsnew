@@ -1,7 +1,10 @@
 package com.example.amsnew.controller;
 
+import java.util.Collections;
 import java.util.List;
 
+
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,46 +29,65 @@ public class LeaveRequestController {
     private LeaveRequestService service;
 
 
-    @GetMapping("/getLeaveDetails")
+    @GetMapping("/getAllLeaveDetails")
     public ResponseEntity<List<LeaveRequest>> getAllLeave(){
         List<LeaveRequest> leaves = service.getAllLeave();
-        if(leaves != null){
-            return new ResponseEntity<>(leaves, HttpStatus.OK);
+        if (leaves.isEmpty()) {
+            return ResponseEntity.ok(Collections.emptyList());
         }
-        else{
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return ResponseEntity.ok(leaves);
+    }
+
+//        @PostMapping("/applyLeave")
+//        public ResponseEntity<String> applyLeave(@RequestBody LeaveRequest request){
+//            LeaveRequest leave = service.applyLeave(request);
+//            if(leave != null){
+//                return ResponseEntity.ok("Leave applied");
+//            }
+//            else{
+//                return ResponseEntity.badRequest().body("wrong input");
+//            }
+//        }
+
+    @PostMapping("/applyLeave")
+    public ResponseEntity<String> applyLeave(@Valid @RequestBody LeaveRequest request) {
+        try {
+            service.applyLeave(request);
+            return ResponseEntity.ok("Leave applied");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-        @PostMapping("/applyLeave")
-        public ResponseEntity<String> applyLeave(@RequestBody LeaveRequest request){
-            LeaveRequest leave = service.applyLeave(request);
-            if(leave != null){
-                return ResponseEntity.ok("Leave applied");
-            }
-            else{
-                return ResponseEntity.badRequest().body("something went wrong");
-            }
-        }
-
-    @GetMapping("/getLeaveDetails/{employeeId}")
+    @GetMapping("/getLeaveDetailsOfEmployee/{employeeId}")
     public ResponseEntity<List<LeaveRequest>> getAllLeaveById(@PathVariable int employeeId){
         List<LeaveRequest> leaves = service.getAllLeaveById(employeeId);
-        if(leaves != null && !leaves.isEmpty()){
-            return new ResponseEntity<>(leaves, HttpStatus.OK);
+        if (leaves.isEmpty()) {
+            return ResponseEntity.ok(Collections.emptyList());
         }
-        else{
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return ResponseEntity.ok(leaves);
+    }
+
+    @GetMapping("/getLeaveDetails/{id}")
+    public ResponseEntity<?> getLeaveById(@PathVariable int id){
+        try{
+            LeaveRequest leave = service.getLeaveById(id);
+            return ResponseEntity.ok(leave);
         }
+        catch(RuntimeException e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+
     }
 
     @PutMapping("/approveLeave/{id}")
     public ResponseEntity<String> approveLeave(@PathVariable int id){
         try{
             LeaveRequest leave =  service.approveLeave(id);
-            return new ResponseEntity<>("success", HttpStatus.OK);
+            return new ResponseEntity<>("Leave Approved", HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            e.printStackTrace();
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -73,29 +95,37 @@ public class LeaveRequestController {
     public ResponseEntity<String> rejectLeave(@PathVariable int id){
         try{
             LeaveRequest leave =  service.rejectLeave(id);
-            return new ResponseEntity<>(HttpStatus.OK);
+            return new ResponseEntity<>("Leave Rejected", HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+
+            return new ResponseEntity<>("unable to reject leave", HttpStatus.BAD_REQUEST);
         }
     }
 
     @GetMapping("/approvedLeave")
-    public ResponseEntity<List<LeaveRequest>> getApprovedLeave(){
+    public ResponseEntity<?> getApprovedLeave(){
         List<LeaveRequest> leaves =  service.getLeaveStatus("approved");
-        if(leaves != null){
-            return new ResponseEntity<>(leaves, HttpStatus.OK);
-        }else{
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        if(leaves.isEmpty()){
+            return ResponseEntity.ok("No approved leaves available");
         }
+        return ResponseEntity.ok(leaves);
     }
 
     @GetMapping("/rejectedLeave")
-    public List<LeaveRequest> getrejectedLeave(){
-        return service.getLeaveStatus("rejected");
+    public ResponseEntity<?> getrejectedLeave(){
+        List<LeaveRequest> leaves = service.getLeaveStatus("rejected");
+        if(leaves.isEmpty()){
+            return ResponseEntity.ok("No rejected leaves available");
+        }
+        return ResponseEntity.ok(leaves);
     }
 
     @GetMapping("/pendingLeave")
-    public List<LeaveRequest> getPendingLeave(){
-        return service.getLeaveStatus("pending");
+    public ResponseEntity<?> getPendingLeave(){
+        List<LeaveRequest> leaves = service.getLeaveStatus("pending");
+        if(leaves.isEmpty()){
+            return ResponseEntity.ok("No pending leaves available");
+        }
+        return ResponseEntity.ok(leaves);
     }
 }

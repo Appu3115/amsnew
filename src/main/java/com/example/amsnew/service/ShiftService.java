@@ -19,11 +19,15 @@ public class ShiftService {
         return repo.findAll();
     }
 
-    public void addShift(Shift shift) {
-        repo.save(shift);
+    public Shift addShift(Shift shift) {
+       return repo.save(shift);
     }
 
     public List<Shift> getShiftsByType(String day) {
         return repo.findAllByShiftType(day);
+    }
+
+    public Shift getShiftById(int id) {
+        return repo.findById(id).orElse(null);
     }
 }
