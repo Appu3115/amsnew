@@ -1,13 +1,13 @@
 package com.example.amsnew.controller;
 
+import java.util.Collections;
 import java.util.List;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import com.example.amsnew.model.Shift;
 import com.example.amsnew.service.ShiftService;
@@ -21,29 +21,58 @@ public class ShiftController {
     @Autowired
     private ShiftService service;
 
-    @GetMapping("/getShift")
-    public List<Shift> getAllShifts(){
-        return service.getAllShifts();
+    @GetMapping("/getAllShift")
+    public ResponseEntity<List<Shift>> getAllShifts(){
+        List<Shift> shifts = service.getAllShifts();
+        if (shifts.isEmpty()) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+        return ResponseEntity.ok(shifts);
+    }
+
+    @GetMapping("/getShift/{id}")
+    public ResponseEntity<?> getShiftById(@PathVariable int id){
+        Shift shift = service.getShiftById(id);
+        if(shift != null){
+            return ResponseEntity.ok(shift);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Shift with id " + id + " not found");
+        }
+
     }
 
     @PostMapping("/addShift")
-    public String addShift(@RequestBody Shift shift){
-        service.addShift(shift);
-        return "Added Successfully";
+    public ResponseEntity<Shift > addShift(@Valid @RequestBody Shift shift){
+        Shift savedShift = service.addShift(shift);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedShift);
+
     }
 
-    @GetMapping("/getDayShift")
-    public List<Shift> getAllDayShifts(){
-        return service.getShiftsByType("Day");
+    @GetMapping("/getDayShifts")
+    public ResponseEntity<List<Shift>> getAllDayShifts(){
+        List<Shift> shift = service.getShiftsByType("Day");
+        if(shift.isEmpty()){
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+        return ResponseEntity.ok(shift);
     }
 
-    @GetMapping("/getNightShift")
-    public List<Shift> getAllNightShifts(){
-        return service.getShiftsByType("Night");
+    @GetMapping("/getNightShifts")
+    public ResponseEntity<List<Shift>> getAllNightShifts(){
+        List<Shift> shift =  service.getShiftsByType("Night");
+        if(shift.isEmpty()){
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+        return ResponseEntity.ok(shift);
     }
     @GetMapping("/getEveningShifts")
-    public List<Shift> getEveningShifts(){
-        return service.getShiftsByType("Evening");
+    public ResponseEntity<List<Shift>> getEveningShifts(){
+        List<Shift> shift = service.getShiftsByType("Evening");
+        if(shift.isEmpty()){
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+        return ResponseEntity.ok(shift);
     }
 
 }
