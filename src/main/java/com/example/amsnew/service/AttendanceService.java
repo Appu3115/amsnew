@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import com.example.amsnew.dto.LoginRequest;
 import com.example.amsnew.model.Attendance;
 import com.example.amsnew.repository.AttendanceRepository;
+import com.example.amsnew.util.DateUtil;
 
 
 @Service
@@ -73,23 +74,53 @@ public class AttendanceService {
     	   return ResponseEntity.ok(saved);
        }
        
-       public List<Attendance> getAttendanceByEmployee(String employeeId)
+
+       public ResponseEntity<?>  fetchAttendance(String employeeId,String date)
        {
-    	   return attendanceRepo.findByEmployeeId(employeeId);
-       }
-       
-       public ResponseEntity<?>  getAttendanceByDate(String employeeId,LocalDate date)
-       {
-    	   if(employeeId == null || date== null)
+    	   
+    	   LocalDate parsedDate =null;
+    	   
+    	   if(date != null && !date.isBlank())
     	   {
-    		   return ResponseEntity.badRequest().body("Employee Id and Date are required");
+    		   parsedDate =DateUtil.parseDate(date);
     	   }
     	   
-    	   Optional<Attendance> attendance=attendanceRepo.findByEmployeeIdAndAttendanceDate(employeeId, date);
-    	   
-    	   if(!attendance.isPresent())
+    	   if(employeeId == null && parsedDate==null)
     	   {
-    		   return ResponseEntity.badRequest().body("No attendance found for this date");
+    		   List<Attendance> list=attendanceRepo.findAll();
+    		   
+    		   if(list.isEmpty())
+    		   {
+    			   return ResponseEntity.ok("No attendance record found");
+    		   }
+    		   return ResponseEntity.ok(list);
+    	   }
+    	   if(employeeId == null && parsedDate != null)
+    	   {
+    		   List<Attendance> list=attendanceRepo.findByAttendanceDate(parsedDate);
+    		   if(list.isEmpty())
+    		   {
+    			   return ResponseEntity.badRequest().body("No attendance found for date: "+ parsedDate);
+    		   }
+    		   return ResponseEntity.ok(list);
+    	   }
+    	   
+    	   if(employeeId != null && parsedDate == null)
+    	   {
+    		   List<Attendance> list=attendanceRepo.findByEmployeeId(employeeId);
+    		   
+    		   if(list.isEmpty())
+    		   {
+    			   return ResponseEntity.badRequest().body("No attendance found for employeeId: "+ employeeId);
+    		   }
+    		   return ResponseEntity.ok(list);
+    	   }
+    	   
+    	   Optional <Attendance> attendance=attendanceRepo.findByEmployeeIdAndAttendanceDate(employeeId, parsedDate);
+    	   
+    	   if(attendance.isEmpty())
+    	   {
+    		   return ResponseEntity.badRequest().body("No attendance found for employeeId: "+ employeeId+" No attendance found for date: "+ date);
     	   }
     	   
     	   return ResponseEntity.ok(attendance.get());
