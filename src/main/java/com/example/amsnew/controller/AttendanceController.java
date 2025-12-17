@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.amsnew.dto.LoginRequest;
 import com.example.amsnew.model.Attendance;
 import com.example.amsnew.service.AttendanceService;
-import com.example.amsnew.util.DateUtil;
+
 
 
 @RestController

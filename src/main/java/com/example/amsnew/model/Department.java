@@ -1,7 +1,6 @@
 package com.example.amsnew.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -15,10 +14,27 @@ public class Department {
        @GeneratedValue(strategy =  GenerationType.IDENTITY)
        private Integer id;
        
-//       @JsonProperty("deptName")
+       @Column(nullable=false)
        private String deptName;
        
+       @Column(unique=true,nullable=false)
+       private String departmentCode;
        
+       private boolean active=true;
+       
+       
+	   public String getDepartmentCode() {
+		return departmentCode;
+	}
+	   public void setDepartmentCode(String departmentCode) {
+		   this.departmentCode = departmentCode;
+	   }
+	   public boolean isActive() {
+		   return active;
+	   }
+	   public void setActive(boolean active) {
+		   this.active = active;
+	   }
 	   public Integer getId() {
 		   return id;
 	   }

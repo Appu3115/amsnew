@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.amsnew.dto.DepartmentRequest;
 import com.example.amsnew.model.Department;
 import com.example.amsnew.repository.DepartmentRepository;
 
@@ -15,8 +16,18 @@ public class DepartmentService {
      @Autowired
      private DepartmentRepository departmentRepo;
      
-     public Department saveDepartment(Department dept)
+     public Department addDepartment(String deptName)
      {
+    	 if(departmentRepo.findByDeptName(deptName).isPresent())
+    	 {
+    		 throw new RuntimeException("Department already exists");
+    	 }
+    	 
+    	 Department dept=new Department();
+    	 dept.setDeptName(deptName);
+    	 dept.setDepartmentCode("DEPT-"+deptName.toUpperCase().replace(" ",""));
+    	 dept.setActive(true);
+    	 
     	 return departmentRepo.save(dept);
      }
      
@@ -24,25 +35,49 @@ public class DepartmentService {
      {
     	 return departmentRepo.findAll();
      }
-     public Department getDepartmentById(int id)
+     
+     public List<Department> getAllActiveDepartments()
      {
-    	 return departmentRepo.findById(id).orElse(null);
+    	 return departmentRepo.findByActiveTrue();
      }
      
-     public String deleteDepartment(int id)
+     public Department getDepartmentById(int id)
      {
-    	 departmentRepo.deleteById(id);
-    	 return "Department deleted successfully";
+    	 return departmentRepo.findById(id).orElseThrow(()-> new RuntimeException("Department not found"));
      }
-     public Department updateDepartment(int id,Department newDept)
+     
+     public String disableDepartment(int id)
      {
-    	 Department oldDept=departmentRepo.findById(id).orElse(null);
+    	 Department dept=departmentRepo.findById(id).orElseThrow(()-> new RuntimeException("Department not found"));
     	 
-    	 if(oldDept != null)
+    	 if(!dept.isActive())
     	 {
-    		 oldDept.setDeptName(newDept.getDeptName());
-    		 return departmentRepo.save(oldDept);
+    		 return "Department already disabled";
     	 }
-    	 return null;
+    	 
+    	 dept.setActive(false);
+    	 departmentRepo.save(dept);
+    	 
+    	 return "Department disabled successfully";
+     }
+     public Department updateDepartment(int id,DepartmentRequest newDept)
+     {
+    	 Department oldDept=departmentRepo.findById(id).orElseThrow(()-> new RuntimeException("Department not found"));
+    	 
+    	 if(!oldDept.isActive())
+    	 {
+    		 throw new RuntimeException("Cannot update inactive department");
+    	 }
+    	 
+    	 oldDept.setDeptName(newDept.getDeptName());
+    	 
+    	 String newCode=generateDepartmentCode(newDept.getDeptName());
+    	 oldDept.setDepartmentCode(newCode);
+    	 
+    	 return departmentRepo.save(oldDept);
+     }
+     private String generateDepartmentCode(String deptName)
+     {
+    	 return "DEPT-"+deptName.toUpperCase().replace(" ", "_");
      }
 }

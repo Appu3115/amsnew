@@ -26,34 +26,37 @@ public class DepartmentController {
 	@PostMapping("/add")
 	public Department addDepartment(@RequestBody DepartmentRequest request)
 	{
-		System.out.print("DepTName:"+request.getDeptName());
-		Department dept=new Department();
-		dept.setDeptName(request.getDeptName());
 		
-		return departmentService.saveDepartment(dept);
+		return departmentService.addDepartment(request.getDeptName());
 	}
-	
-	@GetMapping("/list")
-	public List<Department> getDepartments()
+	@GetMapping("fetchAll")
+	public List<Department> getAllDepartments()
 	{
 		return departmentService.getAllDepartments();
 	}
 	
-	@GetMapping("/{id}")
+	@GetMapping("fetchActiveDept")
+	public List<Department> getAllActiveDepartments()
+	{
+		return departmentService.getAllActiveDepartments();
+	}
+	
+	
+	@GetMapping("/getDept/{id}")
 	public Department getDepartment(@PathVariable int id)
 	{
 		return departmentService.getDepartmentById(id);
 	}
 	
-	@DeleteMapping("/delete/{id}")
-	public String deleteDepartment(@PathVariable int id)
+	@DeleteMapping("/disable/{id}")
+	public String disableDepartment(@PathVariable int id)
 	{
-		return departmentService.deleteDepartment(id);
+		return departmentService.disableDepartment(id);
 	}
 	
 	@PutMapping("/update/{id}")
-	public Department updateDepartment(@PathVariable int id,@RequestBody Department dept)
+	public Department updateDepartment(@PathVariable int id,@RequestBody DepartmentRequest request)
 	{
-		return departmentService.updateDepartment(id,dept);
+		return departmentService.updateDepartment(id,request);
 	}
 }
