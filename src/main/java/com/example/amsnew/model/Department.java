@@ -1,37 +1,38 @@
 package com.example.amsnew.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
-@Table(name="departments")
+@Table(
+    name = "departments",
+    uniqueConstraints = {
+        @UniqueConstraint(columnNames = "deptName")
+    }
+)
 public class Department {
-       @Id
-       @GeneratedValue(strategy =  GenerationType.IDENTITY)
-       private Integer id;
-       
-//       @JsonProperty("deptName")
-       private String deptName;
-       
-       
-	   public Integer getId() {
-		   return id;
-	   }
-	   public void setId(Integer id) {
-		   this.id = id;
-	   }
-	   public String getDeptName() {
-		   return deptName;
-	   }
-	   public void setDeptName(String deptName) {
-		   this.deptName = deptName;
-	   }
-       
-       
-       
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @Column(nullable = false, length = 100)
+    private String deptName;
+
+    // ---------- Getters & Setters ----------
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getDeptName() {
+        return deptName;
+    }
+
+    public void setDeptName(String deptName) {
+        this.deptName = deptName;
+    }
 }
