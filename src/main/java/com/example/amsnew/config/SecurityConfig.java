@@ -86,7 +86,9 @@ public class SecurityConfig {
                             "/attendance/login",
                             "/attendance/logout/*",
                             "/attendance/*",
-                            "/department/**"
+                            "/department/**",
+                            "/user/getAllEmployees",
+                            "/user/delete/{employeeId}"
                         ).permitAll()
                 .anyRequest().authenticated()
             )

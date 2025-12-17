@@ -40,7 +40,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         "/webjars",
         "/favicon.ico",
         "/user/register",
-        "/user/login"
+        "/user/login",
+        "/user/getAllEmployees",
+        "/user/delete/{employeeId}"
     );
 
     @Override

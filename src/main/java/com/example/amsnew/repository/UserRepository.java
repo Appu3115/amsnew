@@ -18,4 +18,8 @@ public interface UserRepository extends JpaRepository<Employees, Integer>{
 
 	Optional<Employees> findByEmail(String email);
 
+	void deleteByEmployeeId(String employeeId);
+
+	Optional<Employees> findByEmployeeId(String employeeId);
+
 }
