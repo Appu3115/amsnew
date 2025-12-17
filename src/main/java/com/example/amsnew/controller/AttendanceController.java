@@ -41,16 +41,9 @@ public class AttendanceController {
 		return attendanceService.logout(id);
 	}
 	
-	@GetMapping("/{employeeId}")
-	public List<Attendance>  getByEmployee(@PathVariable String employeeId)
+	@GetMapping("/fetch")
+	public ResponseEntity<?>  fetchAttendance(@RequestParam(required=false) String employeeId,@RequestParam(required=false) @DateTimeFormat(iso=DateTimeFormat.ISO.DATE)String date)
 	{
-		return attendanceService.getAttendanceByEmployee(employeeId);
-	}
-	
-	@GetMapping("/by-date")
-	public ResponseEntity<?> getAttendanceByDate(@RequestParam String employeeId,@RequestParam  String Date)
-	{
-		LocalDate attendanceDate=DateUtil.parseDate(Date);
-		return attendanceService.getAttendanceByDate(employeeId, attendanceDate);
+		return attendanceService.fetchAttendance(employeeId, date);
 	}
 }

@@ -19,7 +19,7 @@ public class Shift {
     @NotBlank
     private String shiftType;
     @NotNull
-    private LocalTime startTime;
+    private LocalTime startTime;    
     @NotNull
     private LocalTime endTime;
 
