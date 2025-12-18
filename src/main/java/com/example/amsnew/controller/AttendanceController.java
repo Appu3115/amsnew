@@ -46,4 +46,11 @@ public class AttendanceController {
 	{
 		return attendanceService.fetchAttendance(employeeId, date);
 	}
+	
+	
+	@GetMapping("/department-wise")
+	public ResponseEntity<?> departmentWiseAttendance() {
+	    return ResponseEntity.ok(attendanceService.getDepartmentWiseAttendance());
+	}
+
 }

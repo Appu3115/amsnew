@@ -14,11 +14,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 import com.example.amsnew.security.JwtAuthenticationFilter;
-
+import org.springframework.security.config.Customizer;
 
 
 @Configuration
@@ -62,12 +63,14 @@ public class SecurityConfig {
      * Main SecurityFilterChain: allow register/login publicly, protect all other endpoints,
      * stateless session and add JWT filter before UsernamePasswordAuthenticationFilter.
      */
+    
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         // enable CORS (CorsFilter bean is defined below)
-        http.cors(cors -> { /* Uses CorsFilter bean */ });
+        http.cors(Customizer.withDefaults());
 
         http
+            
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
             		.requestMatchers(
@@ -88,7 +91,9 @@ public class SecurityConfig {
                             "/attendance/*",
                             "/department/**",
                             "/user/getAllEmployees",
-                            "/user/delete/{employeeId}"
+                            "/user/delete/**",
+                            
+                            "/actuator/health"
                         ).permitAll()
                 .anyRequest().authenticated()
             )
@@ -101,6 +106,27 @@ public class SecurityConfig {
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+    
+    
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+
+        CorsConfiguration config = new CorsConfiguration();
+
+        config.setAllowedOrigins(List.of("http://localhost:8080"));
+        // OR during development:
+        // config.setAllowedOrigins(List.of("*"));
+
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setExposedHeaders(List.of("Authorization"));
+        config.setAllowCredentials(false);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+
+        return source;
     }
 
     /**

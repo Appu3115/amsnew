@@ -1,15 +1,20 @@
 package com.example.amsnew.model;
 
-<<<<<<< HEAD
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-=======
+
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.*;
->>>>>>> 2d749b33a0991e9b0769fc283d6c67f26e0cb9c9
+
 
 @Entity
 @Table(
@@ -19,10 +24,10 @@ import jakarta.persistence.*;
     }
 )
 public class Department {
-<<<<<<< HEAD
+
        @Id
        @GeneratedValue(strategy =  GenerationType.IDENTITY)
-       private Integer id;
+       private Long id;
        
        @Column(nullable=false)
        private String deptName;
@@ -32,10 +37,19 @@ public class Department {
        
        private boolean active=true;
        
-       
+       @OneToMany(mappedBy = "department")
+       @JsonManagedReference
+       private List<Employees> employees;
+
+	   public List<Employees> getEmployees() {
+		return employees;
+	}
+	   public void setEmployees(List<Employees> employees) {
+		   this.employees = employees;
+	   }
 	   public String getDepartmentCode() {
 		return departmentCode;
-	}
+	   }
 	   public void setDepartmentCode(String departmentCode) {
 		   this.departmentCode = departmentCode;
 	   }
@@ -45,10 +59,10 @@ public class Department {
 	   public void setActive(boolean active) {
 		   this.active = active;
 	   }
-	   public Integer getId() {
+	   public Long getId() {
 		   return id;
 	   }
-	   public void setId(Integer id) {
+	   public void setId(Long id) {
 		   this.id = id;
 	   }
 	   public String getDeptName() {
@@ -57,34 +71,5 @@ public class Department {
 	   public void setDeptName(String deptName) {
 		   this.deptName = deptName;
 	   }
-       
-       
-       
-=======
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-
-    @Column(nullable = false, length = 100)
-    private String deptName;
-
-    // ---------- Getters & Setters ----------
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getDeptName() {
-        return deptName;
-    }
-
-    public void setDeptName(String deptName) {
-        this.deptName = deptName;
-    }
->>>>>>> 2d749b33a0991e9b0769fc283d6c67f26e0cb9c9
 }

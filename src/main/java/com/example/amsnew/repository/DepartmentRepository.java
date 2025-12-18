@@ -1,9 +1,8 @@
 package com.example.amsnew.repository;
 
-<<<<<<< HEAD
+
 import java.util.List;
-=======
->>>>>>> 2d749b33a0991e9b0769fc283d6c67f26e0cb9c9
+
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,10 +22,13 @@ public interface DepartmentRepository extends JpaRepository<Department, Integer>
 	List<Department> findByActiveFalse();
 
 	
-<<<<<<< HEAD
-=======
+
 	Optional<Department> findByDeptNameIgnoreCase(String deptName);
 
     boolean existsByDeptNameIgnoreCase(String deptName);
->>>>>>> 2d749b33a0991e9b0769fc283d6c67f26e0cb9c9
+
+	Optional<Department> findAllById(Long id);
+
+	
+
 }

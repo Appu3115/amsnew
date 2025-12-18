@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -42,7 +43,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         "/user/register",
         "/user/login",
         "/user/getAllEmployees",
-        "/user/delete/{employeeId}"
+        "/user/delete/{employeeId}",
+        "/attendance/login",
+        "/attendance/logout/*",
+        "/department/update{id}"
     );
 
     @Override
@@ -66,6 +70,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
+    	String path = request.getServletPath();
+
+    	for (String skip : SKIP_PATHS) {
+    	    if (path.startsWith(skip)) {
+    	        filterChain.doFilter(request, response);
+    	        return;
+    	    }
+    	}
+    	
         String header = request.getHeader("Authorization");
         String token = null;
         if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
@@ -86,4 +99,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
+    
 }

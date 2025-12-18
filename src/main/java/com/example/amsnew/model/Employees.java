@@ -3,6 +3,8 @@ package com.example.amsnew.model;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -34,11 +36,16 @@ public class Employees {
     @Column(nullable = false)
     private String password; // BCrypt
 
-    @Column(length = 15)
+	@Column(length = 15)
     private String phone;
+    
+    @ManyToOne
+    @JoinColumn(name= "shift_id")
+    private Shift shift;
 
     @ManyToOne
     @JoinColumn(name = "department_id", nullable = false)
+    @JsonBackReference
     private Department department;
 
     @Column(nullable = false, length = 50)
@@ -59,6 +66,15 @@ public class Employees {
 
     // -------- getters & setters --------
 
+    
+    public Shift getShift() {
+		return shift;
+	}
+
+	public void setShift(Shift shift) {
+		this.shift = shift;
+	}
+	
     public Integer getId() {
         return id;
     }

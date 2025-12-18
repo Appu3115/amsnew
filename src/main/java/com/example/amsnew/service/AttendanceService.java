@@ -1,7 +1,9 @@
 package com.example.amsnew.service;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -9,9 +11,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.example.amsnew.dto.DepartmentAttendanceDTO;
 import com.example.amsnew.dto.LoginRequest;
 import com.example.amsnew.model.Attendance;
+import com.example.amsnew.model.AttendanceStatus;
+import com.example.amsnew.model.Employees;
+import com.example.amsnew.model.Shift;
 import com.example.amsnew.repository.AttendanceRepository;
+import com.example.amsnew.repository.UserRepository;
 import com.example.amsnew.util.DateUtil;
 
 
@@ -19,6 +26,10 @@ import com.example.amsnew.util.DateUtil;
 public class AttendanceService {
        @Autowired
        private AttendanceRepository attendanceRepo;
+       
+       @Autowired
+    	private UserRepository userrepo;
+
  
        public ResponseEntity<?> login( LoginRequest request)
        {
@@ -36,15 +47,35 @@ public class AttendanceService {
     	   {
     		   return ResponseEntity.badRequest().body("You already Logged in today");
     	   }
+    	   
+    	   
     	   Attendance attendance=new Attendance();
-    	   attendance.setEmployeeId(employeeId);
     	   attendance.setAttendanceDate(today);
     	   attendance.setLogin(time);
-    	   attendance.setStatus("Logged In");
+    	 
+    	   Employees emp = userrepo.findByEmployeeId(employeeId).orElseThrow(() -> new RuntimeException("Employee not found"));
+
+    		attendance.setEmployee(emp);       
+    		attendance.setEmployeeId(employeeId); 
+    		
+    	   Shift shift=emp.getShift();
+    	   if(shift == null)
+    	   {
+    		   return ResponseEntity.badRequest().body("Shift not assigned to employee");
+    	   }
+    	   LocalTime loginTime=time.toLocalTime();
+    	   
+    	   LocalTime shiftStart=shift.getStartTime().plusMinutes(shift.getGraceMinutes());
+    	   
+    	   if(loginTime.isAfter(shiftStart))
+    	   {
+    		   attendance.setStatus(AttendanceStatus.LATE);
+    	   }
+    	   else {
+    		   attendance.setStatus(AttendanceStatus.PRESENT);
+    	   }
     	   
     	   Attendance saved=attendanceRepo.save(attendance);
-    	   
-    	   
     	   return ResponseEntity.ok(saved);
     	   
        }
@@ -64,11 +95,30 @@ public class AttendanceService {
     		   return ResponseEntity.badRequest().body("Employee already logged out");
     	   }
     	    
-    	   LocalDateTime time=LocalDateTime.now();
+    	   LocalDateTime logoutTime=LocalDateTime.now();
     	   
-    	   attendance.setLogout(time);
-    	   attendance.setStatus("Logged out");
+    	   attendance.setLogout(logoutTime);
+    	   attendance.setStatus(AttendanceStatus.LOGGED_OUT);
+
+    	   Shift shift=attendance.getEmployee().getShift();
     	   
+    	   if(shift != null)
+    	   {
+    		   LocalDateTime shiftEndDateTime=LocalDateTime.of(attendance.getAttendanceDate(), shift.getEndTime());
+    	   
+    	   if(shift.getEndTime().isBefore(shift.getStartTime()))
+    	   {
+    		   shiftEndDateTime=shiftEndDateTime.plusDays(1);
+    	   }
+    	   if(logoutTime.isAfter(shiftEndDateTime))
+    	   {
+    		   long overtime=Duration.between(shiftEndDateTime,logoutTime).toMinutes();
+    		   
+    		   attendance.setOvertime(overtime);
+    	   }else {
+    		   attendance.setOvertime(0);
+    	   }
+    	}
     	   Attendance saved=attendanceRepo.save(attendance);
     	   
     	   return ResponseEntity.ok(saved);
@@ -125,4 +175,9 @@ public class AttendanceService {
     	   
     	   return ResponseEntity.ok(attendance.get());
        }
+       
+       public List<DepartmentAttendanceDTO> getDepartmentWiseAttendance() {
+    	    return attendanceRepo.departmentWiseAttendance();
+    	}
+
 }

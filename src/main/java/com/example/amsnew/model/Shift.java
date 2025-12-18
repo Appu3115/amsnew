@@ -22,8 +22,20 @@ public class Shift {
     private LocalTime startTime;    
     @NotNull
     private LocalTime endTime;
+    private int graceMinutes;
+    
+    
+    
+    
+    public int getGraceMinutes() {
+		return graceMinutes;
+	}
 
-    public int getId() {
+	public void setGraceMinutes(int graceMinutes) {
+		this.graceMinutes = graceMinutes;
+	}
+
+	public int getId() {
         return id;
     }
 

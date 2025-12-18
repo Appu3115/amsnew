@@ -4,9 +4,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 
@@ -22,9 +26,16 @@ public class Attendance {
 	private LocalDate attendanceDate;
 	private LocalDateTime login;
 	private LocalDateTime logout;
-	private String status;
+	private long overtime;
 	
+	@Enumerated(EnumType.STRING)
+	private AttendanceStatus status;
 	
+	@ManyToOne
+	@JoinColumn(name = "employee_ref_id")
+	private Employees employee;
+
+
 	public Long getId() {
 		return id;
 	}
@@ -55,11 +66,24 @@ public class Attendance {
 	public void setLogout(LocalDateTime logout) {
 		this.logout = logout;
 	}
-	public String getStatus() {
+	public AttendanceStatus getStatus() {
 		return status;
 	}
-	public void setStatus(String status) {
+	public void setStatus(AttendanceStatus status) {
 		this.status = status;
+	}
+
+	public Employees getEmployee() {
+		return employee;
+	}
+	public void setEmployee(Employees employee) {
+		this.employee = employee;
+	}
+	public long getOvertime() {
+		return overtime;
+	}
+	public void setOvertime(long overtime) {
+		this.overtime = overtime;
 	}
 	
 	
