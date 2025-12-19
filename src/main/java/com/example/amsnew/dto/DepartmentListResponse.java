@@ -1,5 +1,9 @@
 package com.example.amsnew.dto;
 
+import java.util.List;
+
+import com.example.amsnew.model.Employees;
+
 public class DepartmentListResponse {
 
     private Long id;
@@ -7,8 +11,16 @@ public class DepartmentListResponse {
     private String departmentCode;
     private boolean active;
     private int employeeCount;
+    private List<Employees> employees;
     
     
+    
+	public List<Employees> getEmployees() {
+		return employees;
+	}
+	public void setEmployees(List<Employees> employees) {
+		this.employees = employees;
+	}
 	public Long getId() {
 		return id;
 	}

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import com.example.amsnew.dto.DepartmentListResponse;
 import com.example.amsnew.dto.DepartmentRequest;
 import com.example.amsnew.model.Department;
+import com.example.amsnew.model.Employees;
 import com.example.amsnew.repository.DepartmentRepository;
 
 
@@ -43,6 +44,8 @@ public class DepartmentService {
     	        dto.setEmployeeCount(
     	            dept.getEmployees() == null ? 0 : dept.getEmployees().size()
     	        );
+    	        List<Employees> employees = dept.getEmployees();
+    	        dto.setEmployees(employees);
     	        return dto;
     	    }).toList();
     	}

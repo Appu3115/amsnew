@@ -33,13 +33,7 @@ public class AttendanceController {
 	{
 		return attendanceService.login(request);
 	}
-	
-//	
-//	@PostMapping("/logout/{id}")
-//	public ResponseEntity<?>  logout(@PathVariable Long id)
-//	{
-//		return attendanceService.logout(id);
-//	}
+
 	@PostMapping("/logout/{employeeId}")
 	public ResponseEntity<?> logout(@PathVariable String employeeId) {
 	    return attendanceService.logoutByEmployeeId(employeeId);
