@@ -79,51 +79,91 @@ public class AttendanceService {
     	   return ResponseEntity.ok(saved);
     	   
        }
-       public ResponseEntity<?> logout(Long id)
-       {
-    	   Optional<Attendance> optionalAttendance =attendanceRepo.findById(id);
-    	   
-    	   if(!optionalAttendance.isPresent())
-    	   {
-    		   return ResponseEntity.badRequest().body("Attendance record not found");
-    	   }
-    	   
-    	   Attendance attendance=optionalAttendance.get();
-    	   
-    	   if(attendance.getLogout() != null)
-    	   {
-    		   return ResponseEntity.badRequest().body("Employee already logged out");
-    	   }
-    	    
-    	   LocalDateTime logoutTime=LocalDateTime.now();
-    	   
-    	   attendance.setLogout(logoutTime);
-    	   attendance.setStatus(AttendanceStatus.LOGGED_OUT);
-
-    	   Shift shift=attendance.getEmployee().getShift();
-    	   
-    	   if(shift != null)
-    	   {
-    		   LocalDateTime shiftEndDateTime=LocalDateTime.of(attendance.getAttendanceDate(), shift.getEndTime());
-    	   
-    	   if(shift.getEndTime().isBefore(shift.getStartTime()))
-    	   {
-    		   shiftEndDateTime=shiftEndDateTime.plusDays(1);
-    	   }
-    	   if(logoutTime.isAfter(shiftEndDateTime))
-    	   {
-    		   long overtime=Duration.between(shiftEndDateTime,logoutTime).toMinutes();
-    		   
-    		   attendance.setOvertime(overtime);
-    	   }else {
-    		   attendance.setOvertime(0);
-    	   }
-    	}
-    	   Attendance saved=attendanceRepo.save(attendance);
-    	   
-    	   return ResponseEntity.ok(saved);
-       }
+//       public ResponseEntity<?> logout(Long id)
+//       {
+//    	   Optional<Attendance> optionalAttendance =attendanceRepo.findById(id);
+//    	   
+//    	   if(!optionalAttendance.isPresent())
+//    	   {
+//    		   return ResponseEntity.badRequest().body("Attendance record not found");
+//    	   }
+//    	   
+//    	   Attendance attendance=optionalAttendance.get();
+//    	   
+//    	   if(attendance.getLogout() != null)
+//    	   {
+//    		   return ResponseEntity.badRequest().body("Employee already logged out");
+//    	   }
+//    	    
+//    	   LocalDateTime logoutTime=LocalDateTime.now();
+//    	   
+//    	   attendance.setLogout(logoutTime);
+//    	   attendance.setStatus(AttendanceStatus.LOGGED_OUT);
+//
+//    	   Shift shift=attendance.getEmployee().getShift();
+//    	   
+//    	   if(shift != null)
+//    	   {
+//    		   LocalDateTime shiftEndDateTime=LocalDateTime.of(attendance.getAttendanceDate(), shift.getEndTime());
+//    	   
+//    	   if(shift.getEndTime().isBefore(shift.getStartTime()))
+//    	   {
+//    		   shiftEndDateTime=shiftEndDateTime.plusDays(1);
+//    	   }
+//    	   if(logoutTime.isAfter(shiftEndDateTime))
+//    	   {
+//    		   long overtime=Duration.between(shiftEndDateTime,logoutTime).toMinutes();
+//    		   
+//    		   attendance.setOvertime(overtime);
+//    	   }else {
+//    		   attendance.setOvertime(0);
+//    	   }
+//    	}
+//    	   Attendance saved=attendanceRepo.save(attendance);
+//    	   
+//    	   return ResponseEntity.ok(saved);
+//       }
+//       
        
+       public ResponseEntity<?> logoutByEmployeeId(String employeeId) {
+
+    	    Optional<Attendance> optionalAttendance =
+    	        attendanceRepo.findByEmployeeIdAndLogoutIsNull(employeeId);
+
+    	    if (!optionalAttendance.isPresent()) {
+    	        return ResponseEntity.badRequest()
+    	            .body("No active login found for employee");
+    	    }
+
+    	    Attendance attendance = optionalAttendance.get();
+
+    	    LocalDateTime logoutTime = LocalDateTime.now();
+    	    attendance.setLogout(logoutTime);
+    	    attendance.setStatus(AttendanceStatus.LOGGED_OUT);
+
+    	    Shift shift = attendance.getEmployee().getShift();
+
+    	    if (shift != null) {
+    	        LocalDateTime shiftEnd = LocalDateTime.of(
+    	            attendance.getAttendanceDate(),
+    	            shift.getEndTime()
+    	        );
+
+    	        if (shift.getEndTime().isBefore(shift.getStartTime())) {
+    	            shiftEnd = shiftEnd.plusDays(1);
+    	        }
+
+    	        long overtime = logoutTime.isAfter(shiftEnd)
+    	            ? Duration.between(shiftEnd, logoutTime).toMinutes()
+    	            : 0;
+
+    	        attendance.setOvertime(overtime);
+    	    }
+
+    	    Attendance saved = attendanceRepo.save(attendance);
+    	    return ResponseEntity.ok(saved);
+    	}
+
 
        public ResponseEntity<?>  fetchAttendance(String employeeId,String date)
        {

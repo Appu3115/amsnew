@@ -39,5 +39,8 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long>{
     		 """)
     		 List<DepartmentAttendanceDTO> departmentWiseAttendance();
 
-    
+     Optional<Attendance> findByEmployeeIdAndLogoutIsNull(
+    		    String employeeId
+    		);
+
 }

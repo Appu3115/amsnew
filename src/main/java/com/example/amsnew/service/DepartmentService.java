@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.amsnew.dto.DepartmentListResponse;
 import com.example.amsnew.dto.DepartmentRequest;
 import com.example.amsnew.model.Department;
 import com.example.amsnew.repository.DepartmentRepository;
@@ -31,10 +32,21 @@ public class DepartmentService {
     	 return departmentRepo.save(dept);
      }
      
-     public List<Department> getAllDepartments()
-     {
-    	 return departmentRepo.findAll();
-     }
+     public List<DepartmentListResponse> getAllDepartmentsFinal() {
+
+    	    return departmentRepo.findAll().stream().map(dept -> {
+    	        DepartmentListResponse dto = new DepartmentListResponse();
+    	        dto.setId(dept.getId());
+    	        dto.setDeptName(dept.getDeptName());
+    	        dto.setDepartmentCode(dept.getDepartmentCode());
+    	        dto.setActive(dept.isActive());
+    	        dto.setEmployeeCount(
+    	            dept.getEmployees() == null ? 0 : dept.getEmployees().size()
+    	        );
+    	        return dto;
+    	    }).toList();
+    	}
+
      
      public List<Department> getAllActiveDepartments()
      {

@@ -92,7 +92,7 @@ public class SecurityConfig {
                             "/department/**",
                             "/user/getAllEmployees",
                             "/user/delete/**",
-                            
+                            "/shift/**",
                             "/actuator/health"
                         ).permitAll()
                 .anyRequest().authenticated()

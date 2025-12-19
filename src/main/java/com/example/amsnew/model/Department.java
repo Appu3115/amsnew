@@ -37,7 +37,7 @@ public class Department {
        
        private boolean active=true;
        
-       @OneToMany(mappedBy = "department")
+       @OneToMany(mappedBy = "department",fetch = FetchType.LAZY)
        @JsonManagedReference
        private List<Employees> employees;
 

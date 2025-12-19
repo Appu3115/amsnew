@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.amsnew.dto.DepartmentListResponse;
 import com.example.amsnew.dto.DepartmentRequest;
 import com.example.amsnew.model.Department;
 import com.example.amsnew.service.DepartmentService;
@@ -29,11 +30,12 @@ public class DepartmentController {
 		
 		return departmentService.addDepartment(request.getDeptName());
 	}
+	
 	@GetMapping("fetchAll")
-	public List<Department> getAllDepartments()
-	{
-		return departmentService.getAllDepartments();
+	public List<DepartmentListResponse> getAllDepartments() {
+	    return departmentService.getAllDepartmentsFinal();
 	}
+
 	
 	@GetMapping("fetchActiveDept")
 	public List<Department> getAllActiveDepartments()
