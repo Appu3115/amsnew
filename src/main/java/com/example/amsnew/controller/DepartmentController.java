@@ -45,20 +45,20 @@ public class DepartmentController {
 	
 	
 	@GetMapping("/getDept/{id}")
-	public Department getDepartment(@PathVariable int id)
+	public Department getDepartment(@PathVariable Long id)
 	{
 		return departmentService.getDepartmentById(id);
 	}
 	
 	@DeleteMapping("/disable/{id}")
-	public String disableDepartment(@PathVariable int id)
+	public String disableDepartment(@PathVariable Long id)
 	{
 		return departmentService.disableDepartment(id);
 	}
 	
 	@PutMapping("/update/{id}")
-	public Department updateDepartment(@PathVariable int id,@RequestBody DepartmentRequest request)
+	public Department updateDepartment(@RequestBody DepartmentRequest request)
 	{
-		return departmentService.updateDepartment(id,request);
+		return departmentService.updateDepartment(request);
 	}
 }

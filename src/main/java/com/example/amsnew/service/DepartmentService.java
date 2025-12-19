@@ -56,12 +56,12 @@ public class DepartmentService {
     	 return departmentRepo.findByActiveTrue();
      }
      
-     public Department getDepartmentById(int id)
+     public Department getDepartmentById(Long id)
      {
     	 return departmentRepo.findById(id).orElseThrow(()-> new RuntimeException("Department not found"));
      }
      
-     public String disableDepartment(int id)
+     public String disableDepartment(Long id)
      {
     	 Department dept=departmentRepo.findById(id).orElseThrow(()-> new RuntimeException("Department not found"));
     	 
@@ -75,9 +75,9 @@ public class DepartmentService {
     	 
     	 return "Department disabled successfully";
      }
-     public Department updateDepartment(int id,DepartmentRequest newDept)
+     public Department updateDepartment(DepartmentRequest newDept)
      {
-    	 Department oldDept=departmentRepo.findById(id).orElseThrow(()-> new RuntimeException("Department not found"));
+    	 Department oldDept=departmentRepo.findById(newDept.getId()).orElseThrow(()-> new RuntimeException("Department not found"));
     	 
     	 if(!oldDept.isActive())
     	 {

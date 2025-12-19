@@ -12,7 +12,7 @@ import com.example.amsnew.model.Department;
 
 
 @Repository
-public interface DepartmentRepository extends JpaRepository<Department, Integer>{
+public interface DepartmentRepository extends JpaRepository<Department, Long>{
     Optional<Department> findByDeptName(String deptName);
 	
 	Optional<Department> findByDepartmentCode(String departmentCode);
