@@ -51,7 +51,7 @@ public class Employees {
     @Column(nullable = false, length = 50)
     private String role; // ADMIN, MANAGER, EMPLOYEE
 
-    @Column(nullable = false)
+    @Column(name = "is_active", nullable = false)
     private boolean active = true;
 
     private LocalDate joinDate;
