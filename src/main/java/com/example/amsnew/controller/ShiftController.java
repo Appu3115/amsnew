@@ -45,8 +45,8 @@ public class ShiftController {
     @PostMapping("/addShift")
     public ResponseEntity<Shift > addShift(@Valid @RequestBody Shift shift){
         Shift savedShift = service.addShift(shift);
+        System.out.println(savedShift);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedShift);
-
     }
 
     @GetMapping("/getDayShifts")

@@ -1,8 +1,10 @@
 package com.example.amsnew.service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
+import com.example.amsnew.dto.LeaveRequestDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,12 +36,44 @@ public class LeaveRequestService {
     }
 
 
-    public List<LeaveRequest> getAllLeave() {
-        return  repo.findAll();
-    }
+//    public List<LeaveRequest> getAllLeave() {
+//        return  repo.findAll();
+//    }
+public List<LeaveRequestDTO> getAllLeave() {
+    return repo.findAll().stream().map(leave -> {
+        LeaveRequestDTO dto = new LeaveRequestDTO();
+        dto.setId(leave.getId());
+        dto.setEmployeeId(leave.getEmployee().getId().toString());
+        dto.setEmployeeFirstName(leave.getEmployee().getFirstName()); // getting first name
+        dto.setStartDate(leave.getStartDate());
+        dto.setEndDate(leave.getEndDate());
+        dto.setStatus(leave.getStatus());
+        dto.setReason(leave.getReason().name());
+        return dto;
+    }).toList();
+}
 
-    public List<LeaveRequest> getAllLeaveById(int id) {
-        return repo.findByEmployee_Id(id);
+
+//    public List<LeaveRequest> getAllLeaveById(int id) {
+//        return repo.findByEmployee_Id(id);
+//    }
+    public List<LeaveRequestDTO> getAllLeaveByEmployeeId(int id) {
+        List<LeaveRequest> leaves = repo.findByEmployee_Id(id);
+        List<LeaveRequestDTO> dtoList = new ArrayList<>();
+
+        for (LeaveRequest leave : leaves) {
+            LeaveRequestDTO dto = new LeaveRequestDTO();
+            dto.setId(leave.getId());
+            dto.setEmployeeId(leave.getEmployee().getId().toString());
+            dto.setEmployeeFirstName(leave.getEmployee().getFirstName());
+            dto.setStartDate(leave.getStartDate());
+            dto.setEndDate(leave.getEndDate());
+            dto.setStatus(leave.getStatus());
+            dto.setReason(leave.getReason().toString());
+            dtoList.add(dto);
+        }
+
+        return dtoList;
     }
 
     public LeaveRequest approveLeave(int id) {
@@ -59,12 +93,44 @@ public class LeaveRequestService {
         return leave;
     }
 
-    public List<LeaveRequest> getLeaveStatus(String approved) {
-        return  repo.findAllByStatus(approved);
-    }
+//    public List<LeaveRequest> getLeaveStatus(String approved) {
+//        return  repo.findAllByStatus(approved);
+//    }
+public List<LeaveRequestDTO> getLeaveStatus(String approved) {
+    List<LeaveRequest> leaves = repo.findAllByStatus(approved);
 
-    public LeaveRequest getLeaveById(int id) {
-        LeaveRequest leave = repo.findById((long) id).orElseThrow(() -> new RuntimeException("Leave not found"));
-        return leave;
-    }
+    return leaves.stream().map(leave -> {
+        LeaveRequestDTO dto = new LeaveRequestDTO();
+        dto.setId(leave.getId());
+        dto.setEmployeeId(leave.getEmployee().getId().toString());
+        dto.setEmployeeFirstName(leave.getEmployee().getFirstName());
+        dto.setStartDate(leave.getStartDate());
+        dto.setEndDate(leave.getEndDate());
+        dto.setStatus(leave.getStatus());
+        dto.setReason(leave.getReason().toString());
+        return dto;
+    }).toList();
+}
+
+
+    //    public LeaveRequest getLeaveById(int id) {
+//        LeaveRequest leave = repo.findById((long) id).orElseThrow(() -> new RuntimeException("Leave not found"));
+//        return leave;
+//    }
+public LeaveRequestDTO getLeaveById(int id) {
+    LeaveRequest leave = repo.findById((long) id)
+            .orElseThrow(() -> new RuntimeException("Leave not found"));
+
+    LeaveRequestDTO dto = new LeaveRequestDTO();
+    dto.setId(leave.getId());
+    dto.setEmployeeId(leave.getEmployee().getId().toString()); // employee id
+    dto.setEmployeeFirstName(leave.getEmployee().getFirstName());   // employee name
+    dto.setStartDate(leave.getStartDate());
+    dto.setEndDate(leave.getEndDate());
+    dto.setStatus(leave.getStatus());
+    dto.setReason(leave.getReason().toString());
+
+    return dto;
+}
+
 }
