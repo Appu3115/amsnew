@@ -1,46 +1,85 @@
 package com.example.amsnew.model;
 
-import java.time.LocalDate;
-
-
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+//import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
-@Table(name="leaverequest")
+@Table(name = "leaverequest")
 public class LeaveRequest {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
+
     @NotNull
-    @ManyToOne
-    @JoinColumn(name = "employee_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "employee_id", nullable = false)
     private Employees employee;
+
     @NotNull
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private LeaveType leaveType;
+
     @NotNull
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private LeaveReason reason;
+
+    @Column(nullable = false)
     private LocalDate requestDate;
+
     @NotNull
+    @Column(nullable = false)
     private LocalDate startDate;
+
     @NotNull
+    @Column(nullable = false)
     private LocalDate endDate;
-    private String status;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private LeaveStatus status;
+
     private LocalDate approvedDate;
     
+<<<<<<< HEAD
+=======
+    @OneToMany(
+    	    mappedBy = "leaveRequest",
+    	    cascade = CascadeType.ALL,
+    	    orphanRemoval = true,
+    	    fetch = FetchType.LAZY
+    	)
+    @JsonIgnoreProperties({"proofs"})
+    	private List<LeaveProof> proofs = new ArrayList<>();
+>>>>>>> 4e4810cf203a405ce2c9a15e2dfd325dd0d9c9a2
 
-    public LeaveRequest() {}
+    public List<LeaveProof> getProofs() {
+		return proofs;
+	}
 
+	public void setProofs(List<LeaveProof> proofs) {
+		this.proofs = proofs;
+	}
 
-    public Long getId() {
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public LeaveRequest() {}
+
+    // ===== Getters & Setters =====
+
+    public Integer getId() {
         return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Employees getEmployee() {
@@ -59,20 +98,20 @@ public class LeaveRequest {
         this.leaveType = leaveType;
     }
 
-    public LocalDate getRequestDate() {
-        return requestDate;
-    }
-
-    public void setRequestDate(LocalDate requestDate) {
-        this.requestDate = requestDate;
-    }
-
     public LeaveReason getReason() {
         return reason;
     }
 
     public void setReason(LeaveReason reason) {
         this.reason = reason;
+    }
+
+    public LocalDate getRequestDate() {
+        return requestDate;
+    }
+
+    public void setRequestDate(LocalDate requestDate) {
+        this.requestDate = requestDate;
     }
 
     public LocalDate getStartDate() {
@@ -91,11 +130,11 @@ public class LeaveRequest {
         this.endDate = endDate;
     }
 
-    public String getStatus() {
+    public LeaveStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(LeaveStatus status) {
         this.status = status;
     }
 
@@ -106,19 +145,15 @@ public class LeaveRequest {
     public void setApprovedDate(LocalDate approvedDate) {
         this.approvedDate = approvedDate;
     }
-
-    @Override
-    public String toString() {
-        return "LeaveRequest{" +
-                "id=" + id +
-                ", employee=" + employee +
-                ", leaveType='" + leaveType + '\'' +
-                ", requestDate=" + requestDate +
-                ", reason='" + reason + '\'' +
-                ", startDate=" + startDate +
-                ", endDate=" + endDate +
-                ", status='" + status + '\'' +
-                ", approvedDate=" + approvedDate +
-                '}';
+    
+    public void addProof(LeaveProof proof) {
+        proofs.add(proof);
+        proof.setLeaveRequest(this);
     }
+
+    public void removeProof(LeaveProof proof) {
+        proofs.remove(proof);
+        proof.setLeaveRequest(null);
+    }
+
 }

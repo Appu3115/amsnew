@@ -15,7 +15,7 @@ import jakarta.validation.constraints.NotNull;
 public class Shift {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
     @NotBlank
     private String shiftType;
     @NotNull
@@ -39,11 +39,11 @@ public class Shift {
 		this.graceMinutes = graceMinutes;
 	}
 
-	public int getId() {
+	public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

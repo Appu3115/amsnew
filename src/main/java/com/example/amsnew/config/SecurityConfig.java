@@ -5,8 +5,11 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -16,64 +19,55 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 
 import com.example.amsnew.security.JwtAuthenticationFilter;
-import org.springframework.security.config.Customizer;
-
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Autowired
     private JwtAuthenticationFilter jwtFilter;
 
-    // inject the interface; Spring will supply your CustomUserDetailsService
     @Autowired
     private UserDetailsService userDetailsService;
 
-    // reuse BCrypt bean from your AppConfig (do not redeclare)
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
-    /**
-     * DaoAuthenticationProvider bean (explicit). Using fully-qualified class here avoids
-     * accidental wrong-import issues in some IDE setups.
-     */
+    /* ===== AUTH PROVIDER ===== */
     @Bean
     public org.springframework.security.authentication.dao.DaoAuthenticationProvider daoAuthenticationProvider() {
-        org.springframework.security.authentication.dao.DaoAuthenticationProvider provider =
-                new org.springframework.security.authentication.dao.DaoAuthenticationProvider();
-
+        var provider = new org.springframework.security.authentication.dao.DaoAuthenticationProvider();
         provider.setUserDetailsService(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder);
         return provider;
     }
 
-
-    /**
-     * Expose AuthenticationManager so you can call it from the service for login.
-     */
+    /* ===== AUTH MANAGER ===== */
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config)
+            throws Exception {
         return config.getAuthenticationManager();
     }
 
-    /**
-     * Main SecurityFilterChain: allow register/login publicly, protect all other endpoints,
-     * stateless session and add JWT filter before UsernamePasswordAuthenticationFilter.
-     */
-    
+    /* ===== SECURITY FILTER CHAIN ===== */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        // enable CORS (CorsFilter bean is defined below)
-        http.cors(Customizer.withDefaults());
 
         
         http
-            
+            .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
+
+            /* ===== SESSION ===== */
+            .sessionManagement(sess ->
+                sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+
+            /* ===== AUTHORIZATION ===== */
             .authorizeHttpRequests(auth -> auth
+<<<<<<< HEAD
             		.requestMatchers(
                             "/user/register",
                             "/user/login",
@@ -96,56 +90,67 @@ public class SecurityConfig {
                             "/shift/addShift",
                             "/actuator/health"
                         ).permitAll()
+=======
+
+                /* ===== PUBLIC ENDPOINTS ===== */
+                .requestMatchers(
+                        "/user/login",
+                        "/user/register",
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        "/swagger-ui/index.html",
+                        "/swagger-resources/**",
+                        "/webjars/**",
+                        "/actuator/health"
+                ).permitAll()
+
+                /* ===== DEPARTMENT ===== */
+                .requestMatchers(HttpMethod.GET, "/department/**").authenticated()
+                .requestMatchers(HttpMethod.POST, "/department/**").hasAuthority("ROLE_ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/department/**").hasAuthority("ROLE_ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/department/**").hasAuthority("ROLE_ADMIN")
+
+                /* ===== USER ===== */
+                .requestMatchers("/user/getAllEmployees").hasAuthority("ROLE_ADMIN")
+                .requestMatchers("/user/delete/**").hasAuthority("ROLE_ADMIN")
+
+                /* ===== ATTENDANCE ===== */
+                .requestMatchers("/attendance/**").authenticated()
+
+                /* ===== LEAVE ===== */
+                .requestMatchers(HttpMethod.POST, "/leave/**").hasAuthority("ROLE_EMPLOYEE")
+                .requestMatchers(HttpMethod.GET, "/leave/**").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/leave/**").hasAuthority("ROLE_ADMIN")
+
+                /* ===== EVERYTHING ELSE ===== */
+>>>>>>> 4e4810cf203a405ce2c9a15e2dfd325dd0d9c9a2
                 .anyRequest().authenticated()
             )
-            .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authenticationProvider(daoAuthenticationProvider()) // register provider explicitly
+
+            /* ===== JWT FILTER ===== */
+            .authenticationProvider(daoAuthenticationProvider())
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+
+            /* ===== DISABLE DEFAULT LOGIN ===== */
             .formLogin(form -> form.disable())
             .httpBasic(basic -> basic.disable());
 
-        // register JWT filter
-        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
-    
-    
+
+    /* ===== CORS CONFIG ===== */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-
         CorsConfiguration config = new CorsConfiguration();
-
-        config.setAllowedOrigins(List.of("http://localhost:8080"));
-        // OR during development:
-        // config.setAllowedOrigins(List.of("*"));
-
+        config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization"));
-        config.setAllowCredentials(false);
+        config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
-
         return source;
     }
-
-    /**
-     * CORS filter bean (keeps your original settings).
-     */
-    @Bean
-    public CorsFilter corsFilter() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
-        config.setAllowedOriginPatterns(List.of("*"));
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-
-        return new CorsFilter(source);
-    }
-    
-   
 }

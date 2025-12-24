@@ -3,129 +3,106 @@ package com.example.amsnew.controller;
 import java.util.Collections;
 import java.util.List;
 
-
-import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import com.example.amsnew.dto.LeaveRequestDTO;
 import com.example.amsnew.model.LeaveRequest;
+import com.example.amsnew.model.LeaveStatus;
 import com.example.amsnew.service.LeaveRequestService;
 
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/leave")
+@CrossOrigin(origins = "*")
 public class LeaveRequestController {
 
     @Autowired
     private LeaveRequestService service;
 
-
+    /* ================= GET ALL LEAVES ================= */
     @GetMapping("/getAllLeaveDetails")
-    public ResponseEntity<List<LeaveRequest>> getAllLeave(){
-        List<LeaveRequest> leaves = service.getAllLeave();
-        if (leaves.isEmpty()) {
-            return ResponseEntity.ok(Collections.emptyList());
-        }
-        return ResponseEntity.ok(leaves);
+    public ResponseEntity<List<LeaveRequestDTO>> getAllLeave() {
+        List<LeaveRequestDTO> leaves = service.getAllLeave();
+        return ResponseEntity.ok(
+                leaves.isEmpty() ? Collections.emptyList() : leaves
+        );
     }
 
-//        @PostMapping("/applyLeave")
-//        public ResponseEntity<String> applyLeave(@RequestBody LeaveRequest request){
-//            LeaveRequest leave = service.applyLeave(request);
-//            if(leave != null){
-//                return ResponseEntity.ok("Leave applied");
-//            }
-//            else{
-//                return ResponseEntity.badRequest().body("wrong input");
-//            }
-//        }
+    /* ================= APPLY LEAVE (WITH FILES) ================= */
+    @PostMapping(
+            value = "/applyLeave",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<?> applyLeave(
+            @RequestPart("leave") LeaveRequest request,
+            @RequestPart(value = "files", required = false) MultipartFile[] files
+    ) {
+        return service.applyLeave(request, files);
+    }
 
-    @PostMapping("/applyLeave")
-    public ResponseEntity<String> applyLeave(@Valid @RequestBody LeaveRequest request) {
+    /* ================= GET LEAVES BY EMPLOYEE ================= */
+    @GetMapping("/getLeaveDetailsOfEmployee/{employeeId}")
+    public ResponseEntity<List<LeaveRequestDTO>> getAllLeaveByEmployeeId(
+            @PathVariable int employeeId
+    ) {
+        List<LeaveRequestDTO> leaves = service.getAllLeaveByEmployeeId(employeeId);
+        return ResponseEntity.ok(
+                leaves.isEmpty() ? Collections.emptyList() : leaves
+        );
+    }
+
+    /* ================= GET LEAVE BY ID ================= */
+    @GetMapping("/getLeaveDetails/{id}")
+    public ResponseEntity<?> getLeaveById(@PathVariable Integer id) {
         try {
-            service.applyLeave(request);
-            return ResponseEntity.ok("Leave applied");
+            LeaveRequestDTO leave = service.getLeaveById(id);
+            return ResponseEntity.ok(leave);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    @GetMapping("/getLeaveDetailsOfEmployee/{employeeId}")
-    public ResponseEntity<List<LeaveRequest>> getAllLeaveById(@PathVariable int employeeId){
-        List<LeaveRequest> leaves = service.getAllLeaveById(employeeId);
-        if (leaves.isEmpty()) {
-            return ResponseEntity.ok(Collections.emptyList());
-        }
-        return ResponseEntity.ok(leaves);
-    }
-
-    @GetMapping("/getLeaveDetails/{id}")
-    public ResponseEntity<?> getLeaveById(@PathVariable int id){
-        try{
-            LeaveRequest leave = service.getLeaveById(id);
-            return ResponseEntity.ok(leave);
-        }
-        catch(RuntimeException e){
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-
-    }
-
+    /* ================= APPROVE LEAVE ================= */
     @PutMapping("/approveLeave/{id}")
-    public ResponseEntity<String> approveLeave(@PathVariable int id){
-        try{
-            LeaveRequest leave =  service.approveLeave(id);
-            return new ResponseEntity<>("Leave Approved", HttpStatus.OK);
+    public ResponseEntity<String> approveLeave(@PathVariable Integer id) {
+        try {
+            service.approveLeave(id);
+            return ResponseEntity.ok("Leave Approved");
         } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
         }
     }
 
+    /* ================= REJECT LEAVE ================= */
     @PutMapping("/rejectLeave/{id}")
-    public ResponseEntity<String> rejectLeave(@PathVariable int id){
-        try{
-            LeaveRequest leave =  service.rejectLeave(id);
-            return new ResponseEntity<>("Leave Rejected", HttpStatus.OK);
+    public ResponseEntity<String> rejectLeave(@PathVariable Integer id) {
+        try {
+            service.rejectLeave(id);
+            return ResponseEntity.ok("Leave Rejected");
         } catch (Exception e) {
-
-            return new ResponseEntity<>("unable to reject leave", HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Unable to reject leave");
         }
     }
 
+    /* ================= FILTER BY STATUS ================= */
     @GetMapping("/approvedLeave")
-    public ResponseEntity<?> getApprovedLeave(){
-        List<LeaveRequest> leaves =  service.getLeaveStatus("approved");
-        if(leaves.isEmpty()){
-            return ResponseEntity.ok("No approved leaves available");
-        }
-        return ResponseEntity.ok(leaves);
+    public ResponseEntity<List<LeaveRequestDTO>> getApprovedLeave() {
+        return ResponseEntity.ok(service.getLeaveStatus(LeaveStatus.APPROVED));
     }
 
     @GetMapping("/rejectedLeave")
-    public ResponseEntity<?> getrejectedLeave(){
-        List<LeaveRequest> leaves = service.getLeaveStatus("rejected");
-        if(leaves.isEmpty()){
-            return ResponseEntity.ok("No rejected leaves available");
-        }
-        return ResponseEntity.ok(leaves);
+    public ResponseEntity<List<LeaveRequestDTO>> getRejectedLeave() {
+        return ResponseEntity.ok(service.getLeaveStatus(LeaveStatus.REJECTED));
     }
 
     @GetMapping("/pendingLeave")
-    public ResponseEntity<?> getPendingLeave(){
-        List<LeaveRequest> leaves = service.getLeaveStatus("pending");
-        if(leaves.isEmpty()){
-            return ResponseEntity.ok("No pending leaves available");
-        }
-        return ResponseEntity.ok(leaves);
+    public ResponseEntity<List<LeaveRequestDTO>> getPendingLeave() {
+        return ResponseEntity.ok(service.getLeaveStatus(LeaveStatus.PENDING));
     }
 }

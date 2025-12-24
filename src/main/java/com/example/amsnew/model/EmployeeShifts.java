@@ -14,15 +14,15 @@ public class EmployeeShifts {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private int id;
+	private Integer id;
 	private String employeeId;
 	private String shiftId;
 	private LocalDateTime startDate;
 	private LocalDateTime endDate;
-	public int getId() {
+	public Integer getId() {
 		return id;
 	}
-	public void setId(int id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 	public String getEmployeId() {
