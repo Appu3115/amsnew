@@ -20,7 +20,7 @@ public class Attendance {
       
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	private Integer id;
 	@NotNull
 	private String employeeId;
 	private LocalDate attendanceDate;
@@ -36,10 +36,10 @@ public class Attendance {
 	private Employees employee;
 
 
-	public Long getId() {
+	public Integer getId() {
 		return id;
 	}
-	public void setId(Long id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 	public String getEmployeeId() {

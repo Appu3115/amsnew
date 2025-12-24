@@ -15,7 +15,7 @@ import com.example.amsnew.model.Attendance;
 
 
 @Repository
-public interface AttendanceRepository extends JpaRepository<Attendance, Long>{
+public interface AttendanceRepository extends JpaRepository<Attendance, Integer>{
      List<Attendance> findByEmployeeId(String employeeId);
      
      boolean existsByEmployeeIdAndLogin(String employeeId,LocalDateTime login);

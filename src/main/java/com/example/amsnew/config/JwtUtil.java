@@ -14,27 +14,26 @@ import java.util.Map;
 public class JwtUtil {
 
     @Value("${jwt.secret}")
-    private String jwtSecret; // Base64 encoded secret (min 256-bit)
+    private String jwtSecret;
 
     @Value("${jwt.expiration-ms}")
     private long jwtExpirationMs;
 
     private Key getSigningKey() {
-        // Decode Base64 secret to real bytes (recommended by JJWT)
         byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    // -------------------------
-    // Generate Token (simple)
-    // -------------------------
+    // =========================
+    // Generate token (username only)
+    // =========================
     public String generateToken(String username) {
         return generateToken(username, Map.of());
     }
 
-    // -------------------------
-    // Generate Token (with claims)
-    // -------------------------
+    // =========================
+    // Generate token (with claims)
+    // =========================
     public String generateToken(String username, Map<String, Object> extraClaims) {
         Date now = new Date();
         Date exp = new Date(now.getTime() + jwtExpirationMs);
@@ -48,16 +47,32 @@ public class JwtUtil {
                 .compact();
     }
 
-    // -------------------------
-    // Extract username / subject
-    // -------------------------
+    // =========================
+    // Generate token with role
+    // =========================
+    public String generateTokenWithRole(String username, String role) {
+        return generateToken(username, Map.of(
+            "role", "ROLE_" + role.toUpperCase()
+        ));
+    }
+
+    // =========================
+    // Extract username
+    // =========================
     public String getUsernameFromToken(String token) {
         return extractAllClaims(token).getSubject();
     }
 
-    // -------------------------
+    // =========================
+    // Extract role
+    // =========================
+    public String getRoleFromToken(String token) {
+        return extractAllClaims(token).get("role", String.class);
+    }
+
+    // =========================
     // Validate token
-    // -------------------------
+    // =========================
     public boolean validateToken(String token) {
         try {
             extractAllClaims(token);
@@ -67,9 +82,9 @@ public class JwtUtil {
         }
     }
 
-    // -------------------------
-    // Common claim extractor
-    // -------------------------
+    // =========================
+    // Internal claim parsing
+    // =========================
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())

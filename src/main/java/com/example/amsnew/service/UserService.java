@@ -185,7 +185,7 @@ public class UserService {
 	    }
 
 	    
-	    String token = jwtUtil.generateToken(emp.getEmail());
+	    String token = jwtUtil.generateTokenWithRole(emp.getEmail(),emp.getRole());
 
 	    
 	    emp.setLastLoginAt(LocalDateTime.now());
