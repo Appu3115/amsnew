@@ -23,9 +23,11 @@ public interface UserRepository extends JpaRepository<Employees, Integer>{
 
 	Optional<Employees> findByEmployeeId(String employeeId);
 
-	long countByDepartmentId(Long id);
+	Integer countByDepartmentId(Integer integer);
 	
 	List<Employees> findAll();
+
+	
 
 
 }
