@@ -46,7 +46,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         "/user/delete/{employeeId}",
         "/attendance/login",
         "/attendance/logout/*",
-        "/department/update{id}"
+        "/department/update{id}",
+        "/shift/addShift"
     );
 
     @Override

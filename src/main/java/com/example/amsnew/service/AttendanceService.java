@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,9 +16,11 @@ import com.example.amsnew.dto.DepartmentAttendanceDTO;
 import com.example.amsnew.dto.LoginRequest;
 import com.example.amsnew.model.Attendance;
 import com.example.amsnew.model.AttendanceStatus;
+import com.example.amsnew.model.Department;
 import com.example.amsnew.model.Employees;
 import com.example.amsnew.model.Shift;
 import com.example.amsnew.repository.AttendanceRepository;
+import com.example.amsnew.repository.DepartmentRepository;
 import com.example.amsnew.repository.UserRepository;
 import com.example.amsnew.util.DateUtil;
 
@@ -29,6 +32,9 @@ public class AttendanceService {
        
        @Autowired
     	private UserRepository userrepo;
+       
+       @Autowired
+       private DepartmentRepository departmentRepo;
 
  
        public ResponseEntity<?> login( LoginRequest request)
@@ -172,8 +178,42 @@ public class AttendanceService {
     	   return ResponseEntity.ok(attendance.get());
        }
        
-       public List<DepartmentAttendanceDTO> getDepartmentWiseAttendance() {
-    	    return attendanceRepo.departmentWiseAttendance();
+       public List<DepartmentAttendanceDTO> getDepartmentWiseAttendance(LocalDate date) {
+
+    	    List<Department> departments = departmentRepo.findAll();
+    	    List<DepartmentAttendanceDTO> result = new ArrayList<>();
+
+    	    for (Department dept : departments) {
+
+    	        long totalEmployees =
+    	            userrepo.countByDepartmentId(dept.getId());
+
+    	        long present =
+    	            attendanceRepo.countByEmployee_Department_IdAndAttendanceDateAndStatus(
+    	                dept.getId(), date, AttendanceStatus.PRESENT
+    	            );
+
+    	        long late =
+    	            attendanceRepo.countByEmployee_Department_IdAndAttendanceDateAndStatus(
+    	                dept.getId(), date, AttendanceStatus.LATE
+    	            );
+
+    	        long absent = totalEmployees - (present + late);
+
+    	        result.add(
+    	            new DepartmentAttendanceDTO(
+    	                dept.getDeptName(),
+    	                totalEmployees,
+    	                present,
+    	                late,
+    	                absent
+    	            )
+    	        );
+    	    }
+
+    	    return result;
     	}
+
+
 
 }

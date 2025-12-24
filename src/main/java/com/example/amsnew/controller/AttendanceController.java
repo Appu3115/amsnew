@@ -34,8 +34,8 @@ public class AttendanceController {
 		return attendanceService.login(request);
 	}
 
-	@PostMapping("/logout/{employeeId}")
-	public ResponseEntity<?> logout(@PathVariable String employeeId) {
+	@PostMapping("/logout")
+	public ResponseEntity<?> logout(@RequestParam String employeeId) {
 	    return attendanceService.logoutByEmployeeId(employeeId);
 	}
 
@@ -48,8 +48,17 @@ public class AttendanceController {
 	
 	
 	@GetMapping("/department-wise")
-	public ResponseEntity<?> departmentWiseAttendance() {
-	    return ResponseEntity.ok(attendanceService.getDepartmentWiseAttendance());
+	public ResponseEntity<?> departmentWiseAttendance(
+	        @RequestParam(required = false)
+	        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+	        LocalDate date
+	) {
+	    return ResponseEntity.ok(
+	        attendanceService.getDepartmentWiseAttendance(
+	            date != null ? date : LocalDate.now()
+	        )
+	    );
 	}
+
 
 }

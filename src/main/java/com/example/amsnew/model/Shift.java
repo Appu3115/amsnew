@@ -24,10 +24,14 @@ public class Shift {
     private LocalTime endTime;
     private int graceMinutes;
     
+    private String shiftName;
     
     
-    
-    public int getGraceMinutes() {
+    public void setShiftName(String shiftName) {
+		this.shiftName = shiftName;
+	}
+
+	public int getGraceMinutes() {
 		return graceMinutes;
 	}
 
@@ -66,4 +70,9 @@ public class Shift {
     public void setEndTime(LocalTime endTime) {
         this.endTime = endTime;
     }
+
+	public String getShiftName() {
+		// TODO Auto-generated method stub
+		return shiftName;
+	}
 }

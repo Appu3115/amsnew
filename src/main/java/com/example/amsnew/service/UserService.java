@@ -15,8 +15,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.example.amsnew.config.JwtUtil;
+import com.example.amsnew.dto.DepartmentDTO;
+import com.example.amsnew.dto.EmployeeDetailsResponse;
 import com.example.amsnew.dto.LoginRequest;
 import com.example.amsnew.dto.RegisterDTO;
+import com.example.amsnew.dto.ShiftDTO;
 import com.example.amsnew.model.Department;
 import com.example.amsnew.model.Employees;
 import com.example.amsnew.repository.DepartmentRepository;
@@ -254,4 +257,49 @@ public class UserService {
 	 private String trimOrNull(String s) {
 	        return s == null ? null : s.trim();
 	    }
+	 
+	 public ResponseEntity<?> getAllEmployeeDetails()
+	 {
+		 List<Employees> employees = userrepo.findAll();
+
+		    List<EmployeeDetailsResponse> response = employees.stream().map(emp -> {
+
+		        EmployeeDetailsResponse dto = new EmployeeDetailsResponse();
+
+		        dto.setEmployeeId(emp.getEmployeeId());
+		        dto.setFirstName(emp.getFirstName());
+		        dto.setLastName(emp.getLastName());
+		        dto.setEmail(emp.getEmail());
+		        dto.setPhone(emp.getPhone());
+		        dto.setRole(emp.getRole());
+		        dto.setActive(emp.isActive());
+
+		        
+		        if (emp.getDepartment() != null) {
+		            DepartmentDTO deptDTO = new DepartmentDTO();
+		            deptDTO.setId(emp.getDepartment().getId());
+		            deptDTO.setDeptName(emp.getDepartment().getDeptName());
+		            deptDTO.setDepartmentCode(emp.getDepartment().getDepartmentCode());
+		            deptDTO.setActive(emp.getDepartment().isActive());
+		            dto.setDepartment(deptDTO);
+		        }
+
+		        
+		        if (emp.getShift() != null) {
+		            ShiftDTO shiftDTO = new ShiftDTO();
+		            shiftDTO.setId(emp.getShift().getId());
+		            shiftDTO.setShiftName(emp.getShift().getShiftName());
+		            shiftDTO.setStartTime(emp.getShift().getStartTime());
+		            shiftDTO.setEndTime(emp.getShift().getEndTime());
+		            shiftDTO.setGraceMinutes(emp.getShift().getGraceMinutes());
+		            dto.setShift(shiftDTO);
+		        }
+
+		        return dto;
+
+		    }).toList();
+
+		    return ResponseEntity.ok(response);
+	 }
+
 }

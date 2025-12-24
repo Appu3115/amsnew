@@ -69,6 +69,7 @@ public class SecurityConfig {
         // enable CORS (CorsFilter bean is defined below)
         http.cors(Customizer.withDefaults());
 
+        
         http
             
             .csrf(csrf -> csrf.disable())
@@ -92,7 +93,7 @@ public class SecurityConfig {
                             "/department/**",
                             "/user/getAllEmployees",
                             "/user/delete/**",
-                            "/shift/**",
+                            "/shift/addShift",
                             "/actuator/health"
                         ).permitAll()
                 .anyRequest().authenticated()

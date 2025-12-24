@@ -30,6 +30,7 @@ public class LeaveRequest {
     private LocalDate endDate;
     private String status;
     private LocalDate approvedDate;
+    
 
     public LeaveRequest() {}
 

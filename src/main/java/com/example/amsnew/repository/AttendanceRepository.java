@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import com.example.amsnew.dto.DepartmentAttendanceDTO;
 import com.example.amsnew.model.Attendance;
+import com.example.amsnew.model.AttendanceStatus;
 
 
 
@@ -26,21 +27,19 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long>{
      
      Optional <Attendance> findById(Long id);
      
-     @Query("""
-    		 SELECT new com.example.amsnew.dto.DepartmentAttendanceDTO(
-    		     d.deptName,
-    		     SUM(CASE WHEN a.status = com.example.amsnew.model.AttendanceStatus.PRESENT THEN 1 ELSE 0 END),
-    		     SUM(CASE WHEN a.status = com.example.amsnew.model.AttendanceStatus.ABSENT THEN 1 ELSE 0 END)
-    		 )
-    		 FROM Attendance a
-    		 JOIN a.employee e
-    		 JOIN e.department d
-    		 GROUP BY d.deptName
-    		 """)
-    		 List<DepartmentAttendanceDTO> departmentWiseAttendance();
+    
 
      Optional<Attendance> findByEmployeeIdAndLogoutIsNull(
     		    String employeeId
     		);
+
+  
+
+    	    long countByEmployee_Department_IdAndAttendanceDateAndStatus(
+    	        Long departmentId,
+    	        LocalDate attendanceDate,
+    	        AttendanceStatus status
+    	    );
+    	
 
 }
