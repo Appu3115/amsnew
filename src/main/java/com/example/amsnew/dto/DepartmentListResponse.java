@@ -6,7 +6,7 @@ import com.example.amsnew.model.Employees;
 
 public class DepartmentListResponse {
 
-    private Long id;
+    private Integer id;
     private String deptName;
     private String departmentCode;
     private boolean active;
@@ -21,11 +21,11 @@ public class DepartmentListResponse {
 	public void setEmployees(List<Employees> employees) {
 		this.employees = employees;
 	}
-	public Long getId() {
+	public Integer getId() {
 		return id;
 	}
-	public void setId(Long long1) {
-		this.id = long1;
+	public void setId(Integer integer) {
+		this.id = integer;
 	}
 	public String getDeptName() {
 		return deptName;

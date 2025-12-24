@@ -14,7 +14,7 @@ import java.util.List;
 public interface LeaveRequestRepo extends JpaRepository<LeaveRequest, Integer> {
 
     // ✅ All leaves of one employee
-    List<LeaveRequest> findByEmployeeId(Long employeeId);
+    List<LeaveRequest> findByEmployeeId(Integer id);
 
     // ✅ All leaves by status (ADMIN)
     List<LeaveRequest> findAllByStatus(LeaveStatus status);
