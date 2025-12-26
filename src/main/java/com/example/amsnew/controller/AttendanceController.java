@@ -41,7 +41,9 @@ public class AttendanceController {
 
 	
 	@GetMapping("/fetch")
-	public ResponseEntity<?>  fetchAttendance(@RequestParam(required=false) String employeeId,@RequestParam(required=false) @DateTimeFormat(iso=DateTimeFormat.ISO.DATE)String date)
+	public ResponseEntity<?>  fetchAttendance(@RequestParam(required=false) 
+	String employeeId,@RequestParam(required=false) 
+	@DateTimeFormat(iso=DateTimeFormat.ISO.DATE)String date)
 	{
 		return attendanceService.fetchAttendance(employeeId, date);
 	}
