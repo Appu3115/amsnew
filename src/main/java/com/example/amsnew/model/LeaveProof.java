@@ -1,6 +1,7 @@
 package com.example.amsnew.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
@@ -16,6 +17,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "leave_proof")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class LeaveProof {
 
     @Id
@@ -36,22 +38,32 @@ public class LeaveProof {
     @Column(nullable = false)
     private String fileType;
 
-    // ⭐ ACTUAL FILE STORED IN DB ⭐
-    @Lob
-    @Basic(fetch = FetchType.LAZY) // VERY IMPORTANT
-    @Column(columnDefinition = "LONGBLOB")
-    private byte[] fileData;
+    @Column( length = 500)
+    private String fileUrl;
 
-    public LeaveProof() {}
+
+    public String getFileUrl() {
+		return fileUrl;
+	}
+
+	public void setFileUrl(String fileUrl) {
+		this.fileUrl = fileUrl;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public LeaveProof() {}
 
     public LeaveProof(LeaveRequest leaveRequest,
                       String fileName,
                       String fileType,
-                      byte[] fileData) {
+                     String fileUrl) {
         this.leaveRequest = leaveRequest;
         this.fileName = fileName;
         this.fileType = fileType;
-        this.fileData = fileData;
+        this.fileUrl = fileUrl;
     }
 
     // ===== Getters & Setters =====
@@ -84,11 +96,5 @@ public class LeaveProof {
         this.fileType = fileType;
     }
 
-    public byte[] getFileData() {
-        return fileData;
-    }
-
-    public void setFileData(byte[] fileData) {
-        this.fileData = fileData;
-    }
+   
 }

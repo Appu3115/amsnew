@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import com.example.amsnew.dto.LeaveRequestDTO;
@@ -39,13 +40,12 @@ public class LeaveRequestService {
   
     public ResponseEntity<?> applyLeave(
             String employeeId,
-            LeaveRequestDTO request,
-            MultipartFile[] files
+            LeaveRequestDTO request   // 👈 NEW DTO
     ) {
 
         Map<String, Object> response = new HashMap<>();
 
-        // 👤 Get employee DIRECTLY from request
+        // 👤 Get employee
         Optional<Employees> empOpt = userrepo.findByEmployeeId(employeeId);
         if (empOpt.isEmpty()) {
             return ResponseEntity
@@ -81,6 +81,7 @@ public class LeaveRequestService {
                     .body("Leave already exists for selected dates");
         }
 
+        // 📝 Create leave request
         LeaveRequest leave = new LeaveRequest();
         leave.setEmployee(emp);
         leave.setLeaveType(request.getLeaveType());
@@ -93,43 +94,24 @@ public class LeaveRequestService {
         leave.setRequestDate(LocalDate.now());
         leave.setApprovedDate(null);
 
-        // 💾 Save leave
+        // 💾 Save leave first
         LeaveRequest savedLeave = repo.save(leave);
 
-        // 📎 File upload
-        if (files != null && files.length > 0) {
-            for (MultipartFile file : files) {
+        // 📎 Save proof URLs (Cloudinary / S3 / CDN)
+        if (request.getProofUrls() != null && !request.getProofUrls().isEmpty()) {
 
-                if (file.isEmpty()) continue;
-                
-                String contentType = file.getContentType();
-                if (contentType == null || !isAllowedType(contentType)) {
-                    return ResponseEntity
-                            .badRequest()
-                            .body("Unsupported file type: " + contentType);
-                }
+            for (String url : request.getProofUrls()) {
 
-                if (file.getSize() > 5 * 1024 * 1024) {
-                    return ResponseEntity
-                            .badRequest()
-                            .body("File size exceeds limit");
-                }
+                LeaveProof proof = new LeaveProof();
+                proof.setLeaveRequest(savedLeave);
+                proof.setFileUrl(url);                 // ✅ URL stored
+                proof.setFileName("leave-proof");      // optional
+                proof.setFileType("cloud");             // optional
 
-                try {
-                    LeaveProof proof = new LeaveProof();
-                    proof.setLeaveRequest(savedLeave);
-                    proof.setFileName(file.getOriginalFilename());
-                    proof.setFileType(file.getContentType());
-                    proof.setFileData(file.getBytes());
-
-                    savedLeave.addProof(proof);
-
-                } catch (IOException e) {
-                    return ResponseEntity
-                            .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .body("File upload failed");
-                }
+                savedLeave.addProof(proof);
             }
+
+            // cascade = ALL → this save is enough
             repo.save(savedLeave);
         }
 
@@ -141,16 +123,50 @@ public class LeaveRequestService {
                 .body(response);
     }
 
+    
+    public ResponseEntity<?> getAllEmployeesLeaveRequests() {
 
+        List<LeaveRequest> leaves =
+                repo.findAllByOrderByRequestDateDesc();
 
-    /* ================= FILE TYPE VALIDATION ================= */
-    private boolean isAllowedType(String type) {
-        return type.equals("image/jpeg")
-                || type.equals("image/png")
-                || type.equals("application/pdf")
-                || type.equals("application/msword")
-                || type.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
-                || type.equals("video/mp4");
+        if (leaves.isEmpty()) {
+            return ResponseEntity.ok(List.of());
+        }
+
+        List<Map<String, Object>> response = leaves.stream().map(leave -> {
+
+            Map<String, Object> map = new HashMap<>();
+
+            // 🔑 Leave info
+            map.put("leaveId", leave.getId());
+            map.put("leaveType", leave.getLeaveType());
+            map.put("reason", leave.getReason());
+            map.put("requestDate", leave.getRequestDate());
+            map.put("startDate", leave.getStartDate());
+            map.put("endDate", leave.getEndDate());
+            map.put("status", leave.getStatus());
+            map.put("approvedDate", leave.getApprovedDate());
+
+            // 👤 Employee info (MINIMAL)
+            Employees emp = leave.getEmployee();
+            map.put("employeeId", emp.getEmployeeId());
+            map.put("employeeName",
+                    emp.getFirstName() + " " + emp.getLastName());
+
+            // 📎 Proof URLs only
+            List<String> proofUrls = leave.getProofs()
+                    .stream()
+                    .map(LeaveProof::getFileUrl)
+                    .filter(Objects::nonNull)
+                    .toList();
+
+            map.put("proofUrls", proofUrls);
+
+            return map;
+
+        }).toList();
+
+        return ResponseEntity.ok(response);
     }
 
 }

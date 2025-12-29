@@ -32,4 +32,6 @@ public interface LeaveRequestRepo extends JpaRepository<LeaveRequest, Integer> {
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
     );
+
+	List<LeaveRequest> findAllByOrderByRequestDateDesc();
 }

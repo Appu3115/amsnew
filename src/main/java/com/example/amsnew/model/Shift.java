@@ -2,12 +2,15 @@ package com.example.amsnew.model;
 
 import java.time.LocalTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name="shift")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Shift {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

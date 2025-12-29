@@ -19,15 +19,17 @@ public class LeaveRequestController {
     private LeaveRequestService service;
 
 
-    @PostMapping(
-            value = "/applyleave",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
-    public ResponseEntity<?> applyLeave(@RequestParam String employeeId,
-            @RequestPart("leave") LeaveRequestDTO request,
-            @RequestPart(value = "files", required = false) MultipartFile[] files
+    @PostMapping("/applyleave")
+    public ResponseEntity<?> applyLeave(
+            @RequestParam String employeeId,
+            @RequestBody LeaveRequestDTO dto
     ) {
-        return service.applyLeave(employeeId,request, files);
+        return service.applyLeave(employeeId, dto);
     }
 
+    
+    @GetMapping("/request/getall")
+    public ResponseEntity<?> getAllLeaves() {
+        return service.getAllEmployeesLeaveRequests();
+    }
 }
