@@ -10,11 +10,23 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
+	
+	 @Bean
+	    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+	        http
+	            .csrf().disable() // disable CSRF for simplicity (customize for your app)
+	            .cors().and()
+	            .authorizeHttpRequests()
+	            .anyRequest().permitAll();
+
+	        return http.build();
+	    }
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
@@ -45,7 +57,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        config.setAllowedOrigins(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
@@ -53,5 +65,19 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
+    }
+    
+    @Bean
+    public CorsFilter corsFilter() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(true);
+        config.setAllowedOriginPatterns(List.of("*")); // allow all origins
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+
+        return new CorsFilter(source);
     }
 }

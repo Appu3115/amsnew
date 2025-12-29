@@ -2,50 +2,56 @@ package com.example.amsnew.dto;
 
 import java.time.LocalDate;
 
+import com.example.amsnew.model.LeaveReason;
 import com.example.amsnew.model.LeaveStatus;
+import com.example.amsnew.model.LeaveType;
+
+import jakarta.validation.constraints.NotNull;
 
 public class LeaveRequestDTO {
-    private Integer id;
-    private String employeeId;
-    private String employeeFirstName;
+
+    @NotNull
+    private LeaveType leaveType;
+
+    @NotNull
+    private LeaveReason reason;
+
+    @NotNull
     private LocalDate startDate;
+
+    @NotNull
     private LocalDate endDate;
-    private LeaveStatus status;
-    private String reason;
 
-    // Constructors
-    public LeaveRequestDTO() {}
+    // getters & setters
+    public LeaveType getLeaveType() {
+        return leaveType;
+    }
 
-    public LeaveRequestDTO(Integer id, String employeeId, String employeeFirstName, LocalDate startDate,
-                           LocalDate endDate, LeaveStatus status, String reason) {
-        this.id = id;
-        this.employeeId = employeeId;
-        this.employeeFirstName = employeeFirstName;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.status = status;
+    public void setLeaveType(LeaveType leaveType) {
+        this.leaveType = leaveType;
+    }
+
+    public LeaveReason getReason() {
+        return reason;
+    }
+
+    public void setReason(LeaveReason reason) {
         this.reason = reason;
     }
 
-    // Getters and Setters
-    public Integer getId() { return id; }
-    public void setId(Integer integer) { this.id = integer; }
+    public LocalDate getStartDate() {
+        return startDate;
+    }
 
-    public String getEmployeeId() { return employeeId; }
-    public void setEmployeeId(String employeeId) { this.employeeId = employeeId; }
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
 
-    public String getEmployeeFirstName() { return employeeFirstName; }
-    public void setEmployeeFirstName(String employeeFirstName) { this.employeeFirstName = employeeFirstName; }
+    public LocalDate getEndDate() {
+        return endDate;
+    }
 
-    public LocalDate getStartDate() { return startDate; }
-    public void setStartDate(LocalDate startDate) { this.startDate = startDate; }
-
-    public LocalDate getEndDate() { return endDate; }
-    public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
-
-    public LeaveStatus getStatus() { return status; }
-    public void setStatus(LeaveStatus leaveStatus) { this.status = leaveStatus; }
-
-    public String getReason() { return reason; }
-    public void setReason(String reason) { this.reason = reason; }
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
+    }
 }

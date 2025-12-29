@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.example.amsnew.dto.LeaveRequestDTO;
 import com.example.amsnew.model.*;
@@ -35,27 +36,36 @@ public class LeaveRequestService {
     @Autowired
     private LeaveProofRepository proofrepo;
 
-    /* ================= APPLY LEAVE ================= */
-    public ResponseEntity<?> applyLeave(LeaveRequest request, MultipartFile[] files) {
+  
+    public ResponseEntity<?> applyLeave(
+            String employeeId,
+            LeaveRequestDTO request,
+            MultipartFile[] files
+    ) {
 
         Map<String, Object> response = new HashMap<>();
 
-        // 🔐 Get logged-in user
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = auth.getName();
+        // 👤 Get employee DIRECTLY from request
+        Optional<Employees> empOpt = userrepo.findByEmployeeId(employeeId);
+        if (empOpt.isEmpty()) {
+            return ResponseEntity
+                    .badRequest()
+                    .body("Employee Not Found");
+        }
 
-        Employees emp = userrepo.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Employee not found"));
-
-        request.setEmployee(emp);
+        Employees emp = empOpt.get();
 
         // 📅 Date validation
         if (request.getStartDate().isAfter(request.getEndDate())) {
-            return ResponseEntity.badRequest().body("Start date cannot be after end date");
+            return ResponseEntity
+                    .badRequest()
+                    .body("Start date cannot be after end date");
         }
 
         if (request.getStartDate().isBefore(LocalDate.now())) {
-            return ResponseEntity.badRequest().body("Leave cannot start in the past");
+            return ResponseEntity
+                    .badRequest()
+                    .body("Leave cannot start in the past");
         }
 
         // ❌ Overlap check
@@ -66,38 +76,47 @@ public class LeaveRequestService {
         );
 
         if (overlap) {
-            return ResponseEntity.badRequest().body("Leave already exists for selected dates");
+            return ResponseEntity
+                    .badRequest()
+                    .body("Leave already exists for selected dates");
         }
 
+        // ===============================
+        // DTO ➜ ENTITY
+        // ===============================
+        LeaveRequest leave = new LeaveRequest();
+        leave.setEmployee(emp);
+        leave.setLeaveType(request.getLeaveType());
+        leave.setReason(request.getReason());
+        leave.setStartDate(request.getStartDate());
+        leave.setEndDate(request.getEndDate());
+
         // 🧾 Defaults
-        request.setStatus(LeaveStatus.PENDING);
-        request.setRequestDate(LocalDate.now());
-        request.setApprovedDate(null);
+        leave.setStatus(LeaveStatus.PENDING);
+        leave.setRequestDate(LocalDate.now());
+        leave.setApprovedDate(null);
 
         // 💾 Save leave
-        LeaveRequest savedLeave = repo.save(request);
+        LeaveRequest savedLeave = repo.save(leave);
 
-        // 📎 File upload (store in DB)
+        // 📎 File upload
         if (files != null && files.length > 0) {
             for (MultipartFile file : files) {
 
                 if (file.isEmpty()) continue;
 
-                if (!isAllowedType(file.getContentType())) {
-                    return ResponseEntity.badRequest().body("Invalid file type");
-                }
-
                 if (file.getSize() > 5 * 1024 * 1024) {
-                    return ResponseEntity.badRequest().body("File size exceeds limit");
+                    return ResponseEntity
+                            .badRequest()
+                            .body("File size exceeds limit");
                 }
 
                 try {
-                    LeaveProof proof = new LeaveProof(
-                            savedLeave,
-                            file.getOriginalFilename(),
-                            file.getContentType(),
-                            file.getBytes()
-                    );
+                    LeaveProof proof = new LeaveProof();
+                    proof.setLeaveRequest(savedLeave);
+                    proof.setFileName(file.getOriginalFilename());
+                    proof.setFileType(file.getContentType());
+                    proof.setFileData(file.getBytes());
 
                     savedLeave.addProof(proof);
 
@@ -111,10 +130,14 @@ public class LeaveRequestService {
         }
 
         response.put("message", "Leave applied successfully");
-        response.put("data", savedLeave);
+        response.put("leaveId", savedLeave.getId());
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
     }
+
+
 
     /* ================= FILE TYPE VALIDATION ================= */
     private boolean isAllowedType(String type) {
@@ -126,21 +149,21 @@ public class LeaveRequestService {
                 || type.equals("video/mp4");
     }
 
-    /* ================= GET ALL LEAVES ================= */
-    public List<LeaveRequestDTO> getAllLeave() {
-        return repo.findAll().stream().map(this::toDTO).toList();
-    }
+//    /* ================= GET ALL LEAVES ================= */
+//    public List<LeaveRequestDTO> getAllLeave() {
+//        return repo.findAll().stream().map(this::toDTO).toList();
+//    }
 
     /* ================= GET BY EMPLOYEE ================= */
-    public List<LeaveRequestDTO> getAllLeaveByEmployeeId(Integer id) {
-        List<LeaveRequest> leaves = repo.findByEmployeeId(id);
-        List<LeaveRequestDTO> dtoList = new ArrayList<>();
-
-        for (LeaveRequest leave : leaves) {
-            dtoList.add(toDTO(leave));
-        }
-        return dtoList;
-    }
+//    public List<LeaveRequestDTO> getAllLeaveByEmployeeId(Integer id) {
+//        List<LeaveRequest> leaves = repo.findByEmployeeId(id);
+//        List<LeaveRequestDTO> dtoList = new ArrayList<>();
+//
+//        for (LeaveRequest leave : leaves) {
+//            dtoList.add(toDTO(leave));
+//        }
+//        return dtoList;
+//    }
 
     /* ================= APPROVE LEAVE ================= */
     @Transactional
@@ -166,29 +189,29 @@ public class LeaveRequestService {
     }
 
     /* ================= GET BY ID ================= */
-    public LeaveRequestDTO getLeaveById( Integer id) {
-        LeaveRequest leave = repo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Leave not found"));
-
-        return toDTO(leave);
-    }
-
-    /* ================= GET BY STATUS ================= */
-    public List<LeaveRequestDTO> getLeaveStatus(LeaveStatus status) {
-        List<LeaveRequest> leaves = repo.findAllByStatus(status);
-        return leaves.stream().map(this::toDTO).toList();
-    }
-
-    /* ================= DTO MAPPER ================= */
-    private LeaveRequestDTO toDTO(LeaveRequest leave) {
-        LeaveRequestDTO dto = new LeaveRequestDTO();
-        dto.setId(leave.getId());
-        dto.setEmployeeId(leave.getEmployee().getId().toString());
-        dto.setEmployeeFirstName(leave.getEmployee().getFirstName());
-        dto.setStartDate(leave.getStartDate());
-        dto.setEndDate(leave.getEndDate());
-        dto.setStatus(leave.getStatus());
-        dto.setReason(leave.getReason().toString());
-        return dto;
-    }
+//    public LeaveRequestDTO getLeaveById( Integer id) {
+//        LeaveRequest leave = repo.findById(id)
+//                .orElseThrow(() -> new RuntimeException("Leave not found"));
+//
+//        return toDTO(leave);
+//    }
+//
+//    /* ================= GET BY STATUS ================= */
+//    public List<LeaveRequestDTO> getLeaveStatus(LeaveStatus status) {
+//        List<LeaveRequest> leaves = repo.findAllByStatus(status);
+//        return leaves.stream().map(this::toDTO).toList();
+//    }
+//
+//    /* ================= DTO MAPPER ================= */
+////    private LeaveRequestDTO toDTO(LeaveRequest leave) {
+////        LeaveRequestDTO dto = new LeaveRequestDTO();
+////        dto.setId(leave.getId());
+////        dto.setEmployeeId(leave.getEmployee().getId().toString());
+//        dto.setEmployeeFirstName(leave.getEmployee().getFirstName());
+//        dto.setStartDate(leave.getStartDate());
+//        dto.setEndDate(leave.getEndDate());
+//        dto.setStatus(leave.getStatus());
+//        dto.setReason(leave.getReason().toString());
+//        return dto;
+//    }
 }
