@@ -11,11 +11,12 @@ import org.springframework.stereotype.Repository;
 
 import com.example.amsnew.dto.DepartmentAttendanceDTO;
 import com.example.amsnew.model.Attendance;
+import com.example.amsnew.model.AttendanceStatus;
 
 
 
 @Repository
-public interface AttendanceRepository extends JpaRepository<Attendance, Long>{
+public interface AttendanceRepository extends JpaRepository<Attendance, Integer>{
      List<Attendance> findByEmployeeId(String employeeId);
      
      boolean existsByEmployeeIdAndLogin(String employeeId,LocalDateTime login);
@@ -24,20 +25,21 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long>{
      
      List<Attendance> findByAttendanceDate(LocalDate attendanceDate); 
      
-     Optional <Attendance> findById(Long id);
+     Optional <Attendance> findById(Integer id);
      
-     @Query("""
-    		 SELECT new com.example.amsnew.dto.DepartmentAttendanceDTO(
-    		     d.deptName,
-    		     SUM(CASE WHEN a.status = com.example.amsnew.model.AttendanceStatus.PRESENT THEN 1 ELSE 0 END),
-    		     SUM(CASE WHEN a.status = com.example.amsnew.model.AttendanceStatus.ABSENT THEN 1 ELSE 0 END)
-    		 )
-    		 FROM Attendance a
-    		 JOIN a.employee e
-    		 JOIN e.department d
-    		 GROUP BY d.deptName
-    		 """)
-    		 List<DepartmentAttendanceDTO> departmentWiseAttendance();
-
     
+
+     Optional<Attendance> findByEmployeeIdAndLogoutIsNull(
+    		    String employeeId
+    		);
+
+  
+
+    	    long countByEmployee_Department_IdAndAttendanceDateAndStatus(
+    	        Integer integer,
+    	        LocalDate attendanceDate,
+    	        AttendanceStatus status
+    	    );
+    	
+
 }

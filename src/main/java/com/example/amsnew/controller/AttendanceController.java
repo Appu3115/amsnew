@@ -33,24 +33,34 @@ public class AttendanceController {
 	{
 		return attendanceService.login(request);
 	}
-	
-	
-	@PostMapping("/logout/{id}")
-	public ResponseEntity<?>  logout(@PathVariable Long id)
-	{
-		return attendanceService.logout(id);
+
+	@PostMapping("/logout")
+	public ResponseEntity<?> logout(@RequestParam String employeeId) {
+	    return attendanceService.logoutByEmployeeId(employeeId);
 	}
+
 	
 	@GetMapping("/fetch")
-	public ResponseEntity<?>  fetchAttendance(@RequestParam(required=false) String employeeId,@RequestParam(required=false) @DateTimeFormat(iso=DateTimeFormat.ISO.DATE)String date)
+	public ResponseEntity<?>  fetchAttendance(@RequestParam(required=false) 
+	String employeeId,@RequestParam(required=false) 
+	@DateTimeFormat(iso=DateTimeFormat.ISO.DATE)String date)
 	{
 		return attendanceService.fetchAttendance(employeeId, date);
 	}
 	
 	
 	@GetMapping("/department-wise")
-	public ResponseEntity<?> departmentWiseAttendance() {
-	    return ResponseEntity.ok(attendanceService.getDepartmentWiseAttendance());
+	public ResponseEntity<?> departmentWiseAttendance(
+	        @RequestParam(required = false)
+	        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+	        LocalDate date
+	) {
+	    return ResponseEntity.ok(
+	        attendanceService.getDepartmentWiseAttendance(
+	            date != null ? date : LocalDate.now()
+	        )
+	    );
 	}
+
 
 }

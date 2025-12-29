@@ -1,5 +1,6 @@
 package com.example.amsnew.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,5 +22,12 @@ public interface UserRepository extends JpaRepository<Employees, Integer>{
 	void deleteByEmployeeId(String employeeId);
 
 	Optional<Employees> findByEmployeeId(String employeeId);
+
+	Integer countByDepartmentId(Integer integer);
+	
+	List<Employees> findAll();
+
+	
+
 
 }

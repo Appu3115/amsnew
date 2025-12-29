@@ -10,7 +10,6 @@ import jakarta.persistence.Table;
 
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.*;
@@ -27,7 +26,7 @@ public class Department {
 
        @Id
        @GeneratedValue(strategy =  GenerationType.IDENTITY)
-       private Long id;
+       private Integer id;
        
        @Column(nullable=false)
        private String deptName;
@@ -37,7 +36,7 @@ public class Department {
        
        private boolean active=true;
        
-       @OneToMany(mappedBy = "department")
+       @OneToMany(mappedBy = "department",fetch = FetchType.LAZY)
        @JsonManagedReference
        private List<Employees> employees;
 
@@ -59,10 +58,10 @@ public class Department {
 	   public void setActive(boolean active) {
 		   this.active = active;
 	   }
-	   public Long getId() {
+	   public Integer getId() {
 		   return id;
 	   }
-	   public void setId(Long id) {
+	   public void setId(Integer id) {
 		   this.id = id;
 	   }
 	   public String getDeptName() {

@@ -53,4 +53,10 @@ public class UserController {
     public ResponseEntity<?> deactivateEmployee(@PathVariable String employeeId) {
         return userservice.deactivateEmployee(employeeId);
     }
+    
+    @GetMapping("/allemployeesdetails")
+    public ResponseEntity<?> getAllEmployeeDetails() {
+        return userservice.getAllEmployeeDetails();
+    }
+
 }

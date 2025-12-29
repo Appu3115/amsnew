@@ -2,11 +2,7 @@ package com.example.amsnew.model;
 
 import java.time.LocalTime;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -15,7 +11,7 @@ import jakarta.validation.constraints.NotNull;
 public class Shift {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
     @NotBlank
     private String shiftType;
     @NotNull
@@ -24,10 +20,14 @@ public class Shift {
     private LocalTime endTime;
     private int graceMinutes;
     
+    private String shiftName;
     
     
-    
-    public int getGraceMinutes() {
+    public void setShiftName(String shiftName) {
+		this.shiftName = shiftName;
+	}
+
+	public int getGraceMinutes() {
 		return graceMinutes;
 	}
 
@@ -35,11 +35,11 @@ public class Shift {
 		this.graceMinutes = graceMinutes;
 	}
 
-	public int getId() {
+	public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -66,4 +66,9 @@ public class Shift {
     public void setEndTime(LocalTime endTime) {
         this.endTime = endTime;
     }
+
+	public String getShiftName() {
+		// TODO Auto-generated method stub
+		return shiftName;
+	}
 }

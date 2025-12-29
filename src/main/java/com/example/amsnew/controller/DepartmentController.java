@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.amsnew.dto.DepartmentListResponse;
 import com.example.amsnew.dto.DepartmentRequest;
 import com.example.amsnew.model.Department;
 import com.example.amsnew.service.DepartmentService;
@@ -29,11 +30,12 @@ public class DepartmentController {
 		
 		return departmentService.addDepartment(request.getDeptName());
 	}
+	
 	@GetMapping("fetchAll")
-	public List<Department> getAllDepartments()
-	{
-		return departmentService.getAllDepartments();
+	public List<DepartmentListResponse> getAllDepartments() {
+	    return departmentService.getAllDepartmentsFinal();
 	}
+
 	
 	@GetMapping("fetchActiveDept")
 	public List<Department> getAllActiveDepartments()
@@ -43,20 +45,20 @@ public class DepartmentController {
 	
 	
 	@GetMapping("/getDept/{id}")
-	public Department getDepartment(@PathVariable int id)
+	public Department getDepartment(@PathVariable Long id)
 	{
 		return departmentService.getDepartmentById(id);
 	}
 	
 	@DeleteMapping("/disable/{id}")
-	public String disableDepartment(@PathVariable int id)
+	public String disableDepartment(@PathVariable Long id)
 	{
 		return departmentService.disableDepartment(id);
 	}
 	
 	@PutMapping("/update/{id}")
-	public Department updateDepartment(@PathVariable int id,@RequestBody DepartmentRequest request)
+	public Department updateDepartment(@RequestBody DepartmentRequest request)
 	{
-		return departmentService.updateDepartment(id,request);
+		return departmentService.updateDepartment(request);
 	}
 }

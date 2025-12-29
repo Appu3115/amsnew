@@ -5,8 +5,10 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.amsnew.dto.DepartmentListResponse;
 import com.example.amsnew.dto.DepartmentRequest;
 import com.example.amsnew.model.Department;
+import com.example.amsnew.model.Employees;
 import com.example.amsnew.repository.DepartmentRepository;
 
 
@@ -31,22 +33,35 @@ public class DepartmentService {
     	 return departmentRepo.save(dept);
      }
      
-     public List<Department> getAllDepartments()
-     {
-    	 return departmentRepo.findAll();
-     }
+     public List<DepartmentListResponse> getAllDepartmentsFinal() {
+
+    	    return departmentRepo.findAll().stream().map(dept -> {
+    	        DepartmentListResponse dto = new DepartmentListResponse();
+    	        dto.setId(dept.getId());
+    	        dto.setDeptName(dept.getDeptName());
+    	        dto.setDepartmentCode(dept.getDepartmentCode());
+    	        dto.setActive(dept.isActive());
+    	        dto.setEmployeeCount(
+    	            dept.getEmployees() == null ? 0 : dept.getEmployees().size()
+    	        );
+    	        List<Employees> employees = dept.getEmployees();
+    	        dto.setEmployees(employees);
+    	        return dto;
+    	    }).toList();
+    	}
+
      
      public List<Department> getAllActiveDepartments()
      {
     	 return departmentRepo.findByActiveTrue();
      }
      
-     public Department getDepartmentById(int id)
+     public Department getDepartmentById(Long id)
      {
     	 return departmentRepo.findById(id).orElseThrow(()-> new RuntimeException("Department not found"));
      }
      
-     public String disableDepartment(int id)
+     public String disableDepartment(Long id)
      {
     	 Department dept=departmentRepo.findById(id).orElseThrow(()-> new RuntimeException("Department not found"));
     	 
@@ -60,9 +75,9 @@ public class DepartmentService {
     	 
     	 return "Department disabled successfully";
      }
-     public Department updateDepartment(int id,DepartmentRequest newDept)
+     public Department updateDepartment(DepartmentRequest newDept)
      {
-    	 Department oldDept=departmentRepo.findById(id).orElseThrow(()-> new RuntimeException("Department not found"));
+    	 Department oldDept=departmentRepo.findById(newDept.getId()).orElseThrow(()-> new RuntimeException("Department not found"));
     	 
     	 if(!oldDept.isActive())
     	 {
