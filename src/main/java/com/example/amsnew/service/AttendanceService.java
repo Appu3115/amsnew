@@ -51,8 +51,8 @@ public class AttendanceService {
        @Autowired
        private DepartmentRepository departmentRepo;
 
-       @Autowired
-       private ShiftRepo shiftRepo;
+//       @Autowired
+//       private ShiftRepo shiftRepo;
        
        @Autowired
        private WorkSessionRepository  workSessionRepo;
@@ -66,7 +66,7 @@ public class AttendanceService {
 
        public ResponseEntity<?> login(String employeeId, boolean workFromHome) {
 
-    	    if (employeeId == null || employeeId.isBlank()) {
+    	    if (employeeId == null || employeeId.isEmpty()) {
     	        return ResponseEntity.badRequest().body("Employee ID is required");
     	    }
 
@@ -80,8 +80,12 @@ public class AttendanceService {
     	        return ResponseEntity.badRequest().body("Already logged in today");
     	    }
 
-    	    Employees emp = userrepo.findByEmployeeId(employeeId)
-    	            .orElseThrow(() -> new RuntimeException("Employee not found"));
+    	    Optional<Employees> emp1 = userrepo.findByEmployeeId(employeeId);
+    	    if(emp1.isEmpty()){
+    	    	return ResponseEntity.badRequest().body("Employee not found");
+    	    }
+    	    
+    	    Employees emp = emp1.get();
 
     	    Shift shift = emp.getShift();
     	    if (shift == null) {

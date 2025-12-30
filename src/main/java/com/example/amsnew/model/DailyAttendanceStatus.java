@@ -127,10 +127,6 @@ public class DailyAttendanceStatus {
 	}
 	public void setTotalBreakMinutes(Long totalBreakMinutes) {
 		this.totalBreakMinutes = totalBreakMinutes;
-	}
-
-  
-    
-    
+	} 
     
 }
