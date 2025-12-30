@@ -277,30 +277,7 @@ public class AttendanceService {
        }
        
        
-       public ResponseEntity<?> fetchAttendanceById(String employeeId) {
-
-    	    // 🔹 Fetch all attendance
-    	    if (employeeId == null || employeeId.trim().isEmpty()) {
-    	        List<Attendance> list = attendanceRepo.findAll();
-
-    	        if (list.isEmpty()) {
-    	            return ResponseEntity.ok(Collections.emptyList());
-    	        }
-    	        return ResponseEntity.ok(list);
-    	    }
-
-    	    // 🔹 Fetch by employeeId
-    	    List<Attendance> list = attendanceRepo.findByEmployeeId(employeeId);
-
-    	    if (list.isEmpty()) {
-    	        return ResponseEntity
-    	                .badRequest()
-    	                .body("No attendance found for employeeId: " + employeeId);
-    	    }
-
-    	    return ResponseEntity.ok(list);
-    	}
-
+ 
        
        
        
