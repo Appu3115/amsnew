@@ -87,6 +87,7 @@ public class AttendanceService {
     	    if (shift == null) {
     	        return ResponseEntity.badRequest().body("Shift not assigned. Contact admin.");
     	    }
+    	
 
     	    // -------- Attendance --------
     	    Attendance attendance = new Attendance();
@@ -109,6 +110,12 @@ public class AttendanceService {
     	        attendance.setStatus(AttendanceStatus.PRESENT);
     	    }
 
+    	    
+    	    System.out.println("Shift start: " + shift.getStartTime());
+    	    System.out.println("Grace minutes: " + shift.getGraceMinutes());
+    	    System.out.println("Login time: " + now.toLocalTime());
+    	    System.out.println("Shift start with grace: " + shiftStartWithGrace);
+
     	    Attendance savedAttendance = attendanceRepo.save(attendance);
 
     	    // -------- Work Session --------
@@ -120,23 +127,15 @@ public class AttendanceService {
     	    workSessionRepo.save(workSession);
 
     	    // -------- Daily Attendance Status --------
-    	    DailyAttendanceStatus daily =
-    	            dailyStatusRepo
-    	                .findByEmployeeAndAttendanceDate(emp, today)
-    	                .orElseGet(() -> {
-    	                    DailyAttendanceStatus d = new DailyAttendanceStatus();
-    	                    d.setEmployee(emp);
-    	                    d.setAttendanceDate(today);
-    	                    return d;
-    	                });
-
+    	    DailyAttendanceStatus daily = new DailyAttendanceStatus();
+    	    daily.setEmployee(emp);
+    	    daily.setAttendance(savedAttendance);
+    	    daily.setAttendanceDate(today);
     	    daily.setLoginTime(now);
-    	    daily.setStatus(
-    	            workFromHome
-    	                ? DailyStatus.WORK_FROM_HOME
-    	                : DailyStatus.PRESENT
-    	    );
     	    daily.setLateMinutes(attendance.getLateMinutes());
+    	    daily.setStatus(
+    	            workFromHome ? DailyStatus.WORK_FROM_HOME : DailyStatus.PRESENT
+    	    );
 
     	    dailyStatusRepo.save(daily);
 

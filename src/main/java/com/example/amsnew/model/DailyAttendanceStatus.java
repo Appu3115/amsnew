@@ -22,8 +22,20 @@ public class DailyAttendanceStatus {
     @ManyToOne
     @JoinColumn(name = "employee_id", nullable = false)
     private Employees employee;
+    
+    
+    @ManyToOne
+    @JoinColumn(name = "attendance_id")
+    private Attendance attendance;
 
-    // Attendance date
+
+    public Attendance getAttendance() {
+		return attendance;
+	}
+	public void setAttendance(Attendance attendance) {
+		this.attendance = attendance;
+	}
+	// Attendance date
     @Column(name = "attendance_date", nullable = false)
     private LocalDate attendanceDate;
 
