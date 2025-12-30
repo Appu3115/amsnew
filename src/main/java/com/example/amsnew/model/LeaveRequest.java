@@ -2,27 +2,31 @@ package com.example.amsnew.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import com.example.amsnew.model.LeaveType;
 
-//import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "leaverequest")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class LeaveRequest {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    /* ===== EMPLOYEE ===== */
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id", nullable = false)
+    @JsonIgnoreProperties({"leaveRequests"})
     private Employees employee;
 
+    /* ===== LEAVE DETAILS ===== */
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -50,36 +54,35 @@ public class LeaveRequest {
     private LeaveStatus status;
 
     private LocalDate approvedDate;
+
     
 
+    
+
+
+
+    /* ===== LEAVE PROOFS ===== */
     @OneToMany(
-    	    mappedBy = "leaveRequest",
-    	    cascade = CascadeType.ALL,
-    	    orphanRemoval = true,
-    	    fetch = FetchType.LAZY
-    	)
-    @JsonIgnoreProperties({"proofs"})
-    	private List<LeaveProof> proofs = new ArrayList<>();
+            mappedBy = "leaveRequest",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
+    )
+    @JsonIgnoreProperties({"leaveRequest"})
+    private List<LeaveProof> proofs = new ArrayList<>();
 
 
-    public List<LeaveProof> getProofs() {
-		return proofs;
-	}
+    /* ===== CONSTRUCTOR ===== */
+    public LeaveRequest() {
+    }
 
-	public void setProofs(List<LeaveProof> proofs) {
-		this.proofs = proofs;
-	}
-
-	public void setId(Integer id) {
-		this.id = id;
-	}
-
-	public LeaveRequest() {}
-
-    // ===== Getters & Setters =====
-
+    /* ===== GETTERS & SETTERS ===== */
     public Integer getId() {
         return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public Employees getEmployee() {
@@ -145,7 +148,16 @@ public class LeaveRequest {
     public void setApprovedDate(LocalDate approvedDate) {
         this.approvedDate = approvedDate;
     }
-    
+
+    public List<LeaveProof> getProofs() {
+        return proofs;
+    }
+
+    public void setProofs(List<LeaveProof> proofs) {
+        this.proofs = proofs;
+    }
+
+    /* ===== RELATION HELPERS ===== */
     public void addProof(LeaveProof proof) {
         proofs.add(proof);
         proof.setLeaveRequest(this);
@@ -155,5 +167,4 @@ public class LeaveRequest {
         proofs.remove(proof);
         proof.setLeaveRequest(null);
     }
-
 }

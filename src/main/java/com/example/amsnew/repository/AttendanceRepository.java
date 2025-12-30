@@ -25,7 +25,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Integer>
      
      List<Attendance> findByAttendanceDate(LocalDate attendanceDate); 
      
-     Optional <Attendance> findById(Long id);
+     Optional <Attendance> findById(Integer id);
      
     
 

@@ -8,13 +8,13 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
+//import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.example.amsnew.config.JwtUtil;
+//import com.example.amsnew.config.JwtUtil;
 import com.example.amsnew.dto.DepartmentDTO;
 import com.example.amsnew.dto.EmployeeDetailsResponse;
 import com.example.amsnew.dto.LoginRequest;
@@ -39,8 +39,8 @@ public class UserService {
 	@Autowired
     private BCryptPasswordEncoder passwordEncoder;
 	
-	@Autowired
-	private JwtUtil jwtUtil;
+//	@Autowired
+//	private JwtUtil jwtUtil;
 	
 	
 	@Transactional
@@ -144,17 +144,86 @@ public class UserService {
 
 
 	 
+//	public ResponseEntity<?> loginEmployee(LoginRequest request) {
+//
+//	    if (request == null) {
+//	        return ResponseEntity.badRequest().body("Request body is missing");
+//	    }
+//
+//
+//	    String email = trimOrNull(request.getEmail());
+//	    if (email == null || email.isEmpty()) {
+//	        return ResponseEntity.badRequest().body("Email is required");
+//	    }
+//	    if (!isValidEmail(email)) {
+//	        return ResponseEntity.badRequest().body("Invalid email format");
+//	    }
+//
+//	    Optional<Employees> optEmp = userrepo.findByEmail(email);
+//	    if (optEmp.isEmpty()) {
+//	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+//	                .body("Invalid email or password");
+//	    }
+//
+//	    Employees emp = optEmp.get();
+//
+//	   
+//	    if (!emp.isActive()) {
+//	        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+//	                .body("Account is deactivated. Contact admin.");
+//	    }
+//
+//	   
+//	    String employeeId = trimOrNull(request.getEmployeeId());
+//	    if (employeeId == null || !employeeId.equals(emp.getEmployeeId())) {
+//	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+//	                .body("Invalid employeeId");
+//	    }
+//
+//	    
+//	    if (request.getPassword() == null ||
+//	        !passwordEncoder.matches(request.getPassword(), emp.getPassword())) {
+//	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+//	                .body("Invalid email or password");
+//	    }
+//
+//	    
+//	    String token = jwtUtil.generateTokenWithRole(emp.getEmail(),emp.getRole());
+//
+//	    
+//	    emp.setLastLoginAt(LocalDateTime.now());
+//	    userrepo.save(emp);
+//
+//	    
+//	    Map<String, Object> response = new HashMap<>();
+//	    response.put("employeeId", emp.getEmployeeId());
+//	    response.put("email", emp.getEmail());
+//	    response.put("firstName", emp.getFirstName());
+//	    response.put("lastName", emp.getLastName());
+//	    response.put("role", emp.getRole());
+//	    response.put("token", token);
+//	    response.put("tokenType", "Bearer");
+//	    response.put("message", "Login successful");
+//
+//	    HttpHeaders headers = new HttpHeaders();
+//	    headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+//
+//	    return ResponseEntity.ok()
+//	            .headers(headers)
+//	            .body(response);
+//	}
+
 	public ResponseEntity<?> loginEmployee(LoginRequest request) {
 
 	    if (request == null) {
 	        return ResponseEntity.badRequest().body("Request body is missing");
 	    }
 
-
 	    String email = trimOrNull(request.getEmail());
 	    if (email == null || email.isEmpty()) {
 	        return ResponseEntity.badRequest().body("Email is required");
 	    }
+
 	    if (!isValidEmail(email)) {
 	        return ResponseEntity.badRequest().body("Invalid email format");
 	    }
@@ -167,53 +236,41 @@ public class UserService {
 
 	    Employees emp = optEmp.get();
 
-	   
 	    if (!emp.isActive()) {
 	        return ResponseEntity.status(HttpStatus.FORBIDDEN)
 	                .body("Account is deactivated. Contact admin.");
 	    }
 
-	   
 	    String employeeId = trimOrNull(request.getEmployeeId());
 	    if (employeeId == null || !employeeId.equals(emp.getEmployeeId())) {
 	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 	                .body("Invalid employeeId");
 	    }
 
-	    
 	    if (request.getPassword() == null ||
-	        !passwordEncoder.matches(request.getPassword(), emp.getPassword())) {
+	            !passwordEncoder.matches(request.getPassword(), emp.getPassword())) {
 	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 	                .body("Invalid email or password");
 	    }
 
-	    
-	    String token = jwtUtil.generateTokenWithRole(emp.getEmail(),emp.getRole());
-
-	    
+	    // ✅ Update last login
 	    emp.setLastLoginAt(LocalDateTime.now());
 	    userrepo.save(emp);
 
-	    
+	    // ✅ Response (NO JWT)
 	    Map<String, Object> response = new HashMap<>();
 	    response.put("employeeId", emp.getEmployeeId());
 	    response.put("email", emp.getEmail());
 	    response.put("firstName", emp.getFirstName());
 	    response.put("lastName", emp.getLastName());
 	    response.put("role", emp.getRole());
-	    response.put("token", token);
-	    response.put("tokenType", "Bearer");
 	    response.put("message", "Login successful");
 
-	    HttpHeaders headers = new HttpHeaders();
-	    headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + token);
-
-	    return ResponseEntity.ok()
-	            .headers(headers)
-	            .body(response);
+	    return ResponseEntity.ok(response);
 	}
-
-	 
+ 
+	
+	
 	 public ResponseEntity<?> getAllEmployees(){
 		 List<Employees> li = userrepo.findAll();
 		  if(li.isEmpty()) {

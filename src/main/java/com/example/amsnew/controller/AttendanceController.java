@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,15 +26,16 @@ import com.example.amsnew.service.AttendanceService;
 
 @RestController
 @RequestMapping("/attendance")
+@CrossOrigin(origins="*")
 public class AttendanceController {
 
 	@Autowired
 	private AttendanceService attendanceService;
 	
 	@PostMapping("/login")
-	public ResponseEntity<?> login(@RequestBody LoginRequest request)
+	public ResponseEntity<?> login(@RequestParam LoginRequest EmployeeId)
 	{
-		return attendanceService.login(request);
+		return attendanceService.login(EmployeeId);
 	}
 
 	@PostMapping("/logout")
@@ -43,7 +45,9 @@ public class AttendanceController {
 
 	
 	@GetMapping("/fetch")
-	public ResponseEntity<?>  fetchAttendance(@RequestParam(required=false) String employeeId,@RequestParam(required=false) @DateTimeFormat(iso=DateTimeFormat.ISO.DATE)String date)
+	public ResponseEntity<?>  fetchAttendance(@RequestParam(required=false) 
+	String employeeId,@RequestParam(required=false) 
+	@DateTimeFormat(iso=DateTimeFormat.ISO.DATE)String date)
 	{
 		return attendanceService.fetchAttendance(employeeId, date);
 	}
@@ -61,6 +65,7 @@ public class AttendanceController {
 	        )
 	    );
 	}
+
 
 	
 	// BREAK/ LUNCH
@@ -149,5 +154,11 @@ public class AttendanceController {
 
 	    return attendanceService.getAdminAttendanceDashboard(date);
 	}
+
+
+	@GetMapping("/employeeid")
+    public ResponseEntity<?> fetchAttendanceById(@RequestParam String EmployeeId){
+	return attendanceService.fetchAttendanceById(EmployeeId);
+}
 
 }

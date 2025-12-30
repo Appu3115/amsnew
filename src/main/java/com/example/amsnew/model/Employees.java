@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.*;
 
@@ -15,6 +16,7 @@ import jakarta.persistence.*;
         @UniqueConstraint(columnNames = "email")
     }
 )
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Employees {
 
     @Id
@@ -52,7 +54,7 @@ public class Employees {
     private String role; // ADMIN, MANAGER, EMPLOYEE
 
     @Column(name = "is_active", nullable = false)
-    private boolean active = true;
+    private boolean active = false;
 
     private LocalDate joinDate;
 

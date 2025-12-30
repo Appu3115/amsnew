@@ -49,6 +49,35 @@ public class ShiftController {
         return ResponseEntity.status(HttpStatus.CREATED).body(savedShift);
     }
 
+    @PutMapping("/updateShift/{id}")
+    public ResponseEntity<?> updateShift(
+            @PathVariable int id,
+            @Valid @RequestBody Shift shift) {
+
+        Shift updatedShift = service.updateShift(id, shift);
+
+        if (updatedShift == null) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body("Update failed. Shift not found.");
+        }
+
+        return ResponseEntity.ok(updatedShift);
+    }
+
+    @DeleteMapping("/deleteShift/{id}")
+    public ResponseEntity<?> deleteShift(@PathVariable int id) {
+
+        boolean deleted = service.deleteShift(id);
+
+        if (!deleted) {
+            return ResponseEntity.badRequest().body("Delete failed. Shift not found.");
+        }
+
+        return ResponseEntity.ok("Shift deleted successfully");
+    }
+
+
     @GetMapping("/getDayShifts")
     public ResponseEntity<List<Shift>> getAllDayShifts(){
         List<Shift> shift = service.getShiftsByType("Day");
