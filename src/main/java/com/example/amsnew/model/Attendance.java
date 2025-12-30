@@ -28,12 +28,33 @@ public class Attendance {
 	private LocalDateTime logout;
 	private long overtime;
 	
+	@ManyToOne
+	@JoinColumn(name = "shift_id")
+	private Shift shift;
+
+	private long lateMinutes;
+
 	@Enumerated(EnumType.STRING)
 	private AttendanceStatus status;
 	
 	@ManyToOne
 	@JoinColumn(name = "employee_ref_id")
 	private Employees employee;
+	
+	
+	public Shift getShift() {
+		return shift;
+	}
+	public void setShift(Shift shift) {
+		this.shift = shift;
+	}
+	public long getLateMinutes() {
+		return lateMinutes;
+	}
+	public void setLateMinutes(long lateMinutes) {
+		this.lateMinutes = lateMinutes;
+	}
+	
 
 
 	public Integer getId() {

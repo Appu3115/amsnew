@@ -67,7 +67,7 @@ public class SecurityConfig {
 
             /* ===== AUTHORIZATION ===== */
             .authorizeHttpRequests(auth -> auth
-<<<<<<< HEAD
+
             		.requestMatchers(
                             "/user/register",
                             "/user/login",
@@ -90,7 +90,7 @@ public class SecurityConfig {
                             "/shift/addShift",
                             "/actuator/health"
                         ).permitAll()
-=======
+
 
                 /* ===== PUBLIC ENDPOINTS ===== */
                 .requestMatchers(
@@ -124,7 +124,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/leave/**").hasAuthority("ROLE_ADMIN")
 
                 /* ===== EVERYTHING ELSE ===== */
->>>>>>> 4e4810cf203a405ce2c9a15e2dfd325dd0d9c9a2
+
                 .anyRequest().authenticated()
             )
 

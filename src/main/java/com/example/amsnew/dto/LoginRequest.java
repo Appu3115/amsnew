@@ -5,6 +5,21 @@ public class LoginRequest {
     private String employeeId;
     private String email;
     private String password;
+    private Integer shiftId;
+    private boolean workFromHome;
+    
+	public boolean isWorkFromHome() {
+		return workFromHome;
+	}
+	public void setWorkFromHome(boolean workFromHome) {
+		this.workFromHome = workFromHome;
+	}
+	public Integer getShiftId() {
+		return shiftId;
+	}
+	public void setShiftId(Integer shiftId) {
+		this.shiftId = shiftId;
+	}
 	public String getEmployeeId() {
 		return employeeId;
 	}

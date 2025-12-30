@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import com.example.amsnew.model.LeaveType;
 
 //import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -50,8 +51,7 @@ public class LeaveRequest {
 
     private LocalDate approvedDate;
     
-<<<<<<< HEAD
-=======
+
     @OneToMany(
     	    mappedBy = "leaveRequest",
     	    cascade = CascadeType.ALL,
@@ -60,7 +60,7 @@ public class LeaveRequest {
     	)
     @JsonIgnoreProperties({"proofs"})
     	private List<LeaveProof> proofs = new ArrayList<>();
->>>>>>> 4e4810cf203a405ce2c9a15e2dfd325dd0d9c9a2
+
 
     public List<LeaveProof> getProofs() {
 		return proofs;

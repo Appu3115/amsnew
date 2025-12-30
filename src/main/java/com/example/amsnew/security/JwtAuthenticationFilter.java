@@ -33,7 +33,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         "/v3/api-docs/",
         "/swagger-ui",
         "/swagger-ui/",
-<<<<<<< HEAD
+
         "/swagger-ui/index.html",
         "/swagger-ui.html",
         "/swagger-resources",
@@ -46,10 +46,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         "/attendance/login",
         "/attendance/logout/*",
         "/department/update{id}",
-        "/shift/addShift"
-=======
+        "/shift/addShift",
+
         "/swagger-ui.html"
->>>>>>> 4e4810cf203a405ce2c9a15e2dfd325dd0d9c9a2
+
     );
 
     @Override

@@ -2,15 +2,15 @@ package com.example.amsnew.dto;
 
 public class DepartmentDTO {
 
-	private Long id;
+	private Integer id;
     private String deptName;
     private String departmentCode;
     private boolean active;
     
-	public Long getId() {
+	public Integer getId() {
 		return id;
 	}
-	public void setId(Long id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 	public String getDeptName() {

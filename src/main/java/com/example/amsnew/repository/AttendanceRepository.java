@@ -36,7 +36,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Integer>
   
 
     	    long countByEmployee_Department_IdAndAttendanceDateAndStatus(
-    	        Long departmentId,
+    	        Integer integer,
     	        LocalDate attendanceDate,
     	        AttendanceStatus status
     	    );

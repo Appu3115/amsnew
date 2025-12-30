@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.amsnew.dto.LoginRequest;
+import com.example.amsnew.model.ActivityType;
 import com.example.amsnew.model.Attendance;
+import com.example.amsnew.model.SessionType;
 import com.example.amsnew.service.AttendanceService;
 
 
@@ -60,5 +62,92 @@ public class AttendanceController {
 	    );
 	}
 
+	
+	// BREAK/ LUNCH
+
+	@PostMapping("/pause")
+    public ResponseEntity<?> pause(
+            @RequestParam String employeeId,
+            @RequestParam SessionType type   // BREAK or LUNCH
+    ) {
+        return attendanceService.startPause(employeeId, type);
+    }
+	
+	//RESUME WORK
+	
+	@PostMapping("/resume")
+    public ResponseEntity<?> resume(@RequestParam String employeeId) {
+        return attendanceService.resumeWork(employeeId);
+    }
+	
+	// ACTIVITY TRACKING
+	
+	@PostMapping("/activity")
+    public void recordActivity(@RequestParam String employeeId,@RequestParam ActivityType type  ) {
+        attendanceService.recordActivity(employeeId, type);
+    }
+	
+	//PRODUCTIVE TIME
+	
+	@GetMapping("/productive-time")
+    public ResponseEntity<?> productiveTime( @RequestParam String employeeId,@RequestParam LocalDate date) {
+        return ResponseEntity.ok(
+                attendanceService.calculateProductiveTime(employeeId, date)
+        );
+    }
+	
+	
+	//Total work time 
+	@GetMapping("/total-work-time")
+	public ResponseEntity<?> totalWorkTime( @RequestParam String employeeId, @RequestParam LocalDate date) {
+	    return ResponseEntity.ok(
+	            attendanceService.calculateTotalWorkTime(employeeId, date)
+	    );
+	}
+
+	//Idle time
+	@GetMapping("/idle-time")
+	public ResponseEntity<?> idleTime( @RequestParam String employeeId, @RequestParam LocalDate date) {
+	    return ResponseEntity.ok(
+	            attendanceService.calculateIdleTime(employeeId, date)
+	    );
+	}
+
+	// PERMISSION REQUEST
+	@PostMapping("/permission")
+	public ResponseEntity<?> requestPermission(@RequestParam String employeeId,@RequestParam long minutes) {
+
+	    return attendanceService.requestPermission(employeeId, minutes);
+	}
+
+	// TOTAL BREAK TIME
+	@GetMapping("/break-time")
+	public ResponseEntity<?> breakTime( @RequestParam String employeeId,  @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+
+	    return ResponseEntity.ok(
+	            attendanceService.calculateTotalBreakTime(employeeId, date)
+	    );
+	}
+
+	//Attendance Summary for employee side
+	@GetMapping("/dashboard/employee")
+	public ResponseEntity<?> employeeDashboard(
+	        @RequestParam String employeeId,
+	        @RequestParam int year,
+	        @RequestParam int month) {
+
+	    return attendanceService
+	            .getEmployeeAttendanceSummary(employeeId, year, month);
+	}
+
+	//attendance summary for admin side
+	@GetMapping("/dashboard/admin")
+	public ResponseEntity<?> adminDashboard(
+	        @RequestParam(required = false)
+	        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+	        LocalDate date) {
+
+	    return attendanceService.getAdminAttendanceDashboard(date);
+	}
 
 }
