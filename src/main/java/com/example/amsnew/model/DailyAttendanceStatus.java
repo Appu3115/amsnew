@@ -2,19 +2,8 @@ package com.example.amsnew.model;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.*;
 
 @Entity
 @Table(
@@ -25,86 +14,111 @@ import jakarta.persistence.UniqueConstraint;
 )
 public class DailyAttendanceStatus {
 
-	    @Id
-	    @GeneratedValue(strategy = GenerationType.IDENTITY)
-	    private Integer id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
-	    @ManyToOne
-	    @JoinColumn(name = "employee_id", nullable = false)
-	    private Employees employee;
+    // Employee reference
+    @ManyToOne
+    @JoinColumn(name = "employee_id", nullable = false)
+    private Employees employee;
 
-	    @Column(name = "attendance_date", nullable = false)
-	    private LocalDate attendanceDate;
+    // Attendance date
+    @Column(name = "attendance_date", nullable = false)
+    private LocalDate attendanceDate;
 
-	    @Enumerated(EnumType.STRING)
-	    private DailyStatus status;
-	    
-	    private LocalDateTime loginTime;
-	    private LocalDateTime logoutTime;
-	    private Long permissionMinutes;
+    // PRESENT / ABSENT / WFH / PERMISSION
+    @Enumerated(EnumType.STRING)
+    private DailyStatus status;
 
-	    
-	    
-	    
-		public Integer getId() {
-			return id;
-		}
+    // Login / Logout
+    private LocalDateTime loginTime;
+    private LocalDateTime logoutTime;
 
-		public void setId(Integer id) {
-			this.id = id;
-		}
+    // Late & Overtime
+    private Long lateMinutes;
+    private Long overtimeMinutes;
 
-		public Employees getEmployee() {
-			return employee;
-		}
+    // Permission (minutes)
+    private Long permissionMinutes;
 
-		public void setEmployee(Employees employee) {
-			this.employee = employee;
-		}
+    // Daily summary
+    private Long totalWorkMinutes;
+    private Long totalBreakMinutes;
+    
+    
+    
+    
+    
+	public Integer getId() {
+		return id;
+	}
+	public void setId(Integer id) {
+		this.id = id;
+	}
+	public Employees getEmployee() {
+		return employee;
+	}
+	public void setEmployee(Employees employee) {
+		this.employee = employee;
+	}
+	public LocalDate getAttendanceDate() {
+		return attendanceDate;
+	}
+	public void setAttendanceDate(LocalDate attendanceDate) {
+		this.attendanceDate = attendanceDate;
+	}
+	public DailyStatus getStatus() {
+		return status;
+	}
+	public void setStatus(DailyStatus status) {
+		this.status = status;
+	}
+	public LocalDateTime getLoginTime() {
+		return loginTime;
+	}
+	public void setLoginTime(LocalDateTime loginTime) {
+		this.loginTime = loginTime;
+	}
+	public LocalDateTime getLogoutTime() {
+		return logoutTime;
+	}
+	public void setLogoutTime(LocalDateTime logoutTime) {
+		this.logoutTime = logoutTime;
+	}
+	public Long getLateMinutes() {
+		return lateMinutes;
+	}
+	public void setLateMinutes(Long lateMinutes) {
+		this.lateMinutes = lateMinutes;
+	}
+	public Long getOvertimeMinutes() {
+		return overtimeMinutes;
+	}
+	public void setOvertimeMinutes(Long overtimeMinutes) {
+		this.overtimeMinutes = overtimeMinutes;
+	}
+	public Long getPermissionMinutes() {
+		return permissionMinutes;
+	}
+	public void setPermissionMinutes(Long permissionMinutes) {
+		this.permissionMinutes = permissionMinutes;
+	}
+	public Long getTotalWorkMinutes() {
+		return totalWorkMinutes;
+	}
+	public void setTotalWorkMinutes(Long totalWorkMinutes) {
+		this.totalWorkMinutes = totalWorkMinutes;
+	}
+	public Long getTotalBreakMinutes() {
+		return totalBreakMinutes;
+	}
+	public void setTotalBreakMinutes(Long totalBreakMinutes) {
+		this.totalBreakMinutes = totalBreakMinutes;
+	}
 
-		public LocalDate getAttendanceDate() {
-			return attendanceDate;
-		}
-
-		public void setAttendanceDate(LocalDate attendanceDate) {
-			this.attendanceDate = attendanceDate;
-		}
-
-		public DailyStatus getStatus() {
-			return status;
-		}
-
-		public void setStatus(DailyStatus status) {
-			this.status = status;
-		}
-
-		public LocalDateTime getLoginTime() {
-			return loginTime;
-		}
-
-		public void setLoginTime(LocalDateTime loginTime) {
-			this.loginTime = loginTime;
-		}
-
-		public LocalDateTime getLogoutTime() {
-			return logoutTime;
-		}
-
-		public void setLogoutTime(LocalDateTime logoutTime) {
-			this.logoutTime = logoutTime;
-		}
-
-		public Long getPermissionMinutes() {
-			return permissionMinutes;
-		}
-
-		public void setPermissionMinutes(Long permissionMinutes) {
-			this.permissionMinutes = permissionMinutes;
-		}
-
-		
-	    
-	    
-	    
-	    
+  
+    
+    
+    
 }

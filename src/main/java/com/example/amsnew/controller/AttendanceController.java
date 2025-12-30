@@ -32,18 +32,39 @@ public class AttendanceController {
 	@Autowired
 	private AttendanceService attendanceService;
 	
+
 	@PostMapping("/login")
-	public ResponseEntity<?> login(@RequestParam LoginRequest EmployeeId)
-	{
-		return attendanceService.login(EmployeeId);
+	public ResponseEntity<?> login(
+	        @RequestParam String employeeId,
+	        @RequestParam(defaultValue = "false") boolean workFromHome
+	) {
+	    return attendanceService.login(employeeId, workFromHome);
 	}
+
 
 	@PostMapping("/logout")
 	public ResponseEntity<?> logout(@RequestParam String employeeId) {
 	    return attendanceService.logoutByEmployeeId(employeeId);
 	}
 
-	
+	// Attendance History For Admin
+	@GetMapping("/admin/daily")
+	public ResponseEntity<?> getAllEmployeesDailyAttendance(
+	        @RequestParam(required = false) String fromDate,
+	        @RequestParam(required = false) String toDate
+	) {
+	    return attendanceService
+	            .getAllEmployeesDailyAttendance(fromDate, toDate);
+	}
+
+
+	 @GetMapping("/fetch-by-employee")
+	    public ResponseEntity<?> fetchAttendanceByEmployee(
+	            @RequestParam(required = false) String employeeId
+	    ) {
+	        return attendanceService.fetchAttendanceById(employeeId);
+	    } 
+	 
 	@GetMapping("/fetch")
 	public ResponseEntity<?>  fetchAttendance(@RequestParam(required=false) 
 	String employeeId,@RequestParam(required=false) 
@@ -51,6 +72,7 @@ public class AttendanceController {
 	{
 		return attendanceService.fetchAttendance(employeeId, date);
 	}
+	
 	
 	
 	@GetMapping("/department-wise")
