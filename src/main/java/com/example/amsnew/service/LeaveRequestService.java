@@ -1,8 +1,8 @@
 package com.example.amsnew.service;
 
-import java.io.IOException;
+//import java.io.IOException;
 import java.time.LocalDate;
-import java.util.ArrayList;
+//import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,19 +11,19 @@ import java.util.Optional;
 
 import com.example.amsnew.dto.LeaveRequestDTO;
 import com.example.amsnew.model.*;
-import com.example.amsnew.repository.LeaveProofRepository;
+//import com.example.amsnew.repository.LeaveProofRepository;
 import com.example.amsnew.repository.LeaveRequestRepo;
 import com.example.amsnew.repository.UserRepository;
 
-import jakarta.transaction.Transactional;
+//import jakarta.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+//import org.springframework.security.core.Authentication;
+//import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
+//import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class LeaveRequestService {
@@ -34,8 +34,8 @@ public class LeaveRequestService {
     @Autowired
     private UserRepository userrepo;
 
-    @Autowired
-    private LeaveProofRepository proofrepo;
+//    @Autowired
+//    private LeaveProofRepository proofrepo;
 
   
     public ResponseEntity<?> applyLeave(

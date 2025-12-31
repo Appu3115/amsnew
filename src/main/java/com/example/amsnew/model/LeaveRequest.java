@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import com.example.amsnew.model.LeaveType;
+//import com.example.amsnew.model.LeaveType;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
