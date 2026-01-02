@@ -63,6 +63,11 @@
             <scope>runtime</scope>
         </dependency>
 
+         <dependency>
+    <groupId>com.fasterxml.jackson.datatype</groupId>
+    <artifactId>jackson-datatype-jsr310</artifactId>
+</dependency>
+
         <!-- Swagger / OpenAPI (Compatible with Boot 3.x) -->
         <dependency>
             <groupId>org.springdoc</groupId>

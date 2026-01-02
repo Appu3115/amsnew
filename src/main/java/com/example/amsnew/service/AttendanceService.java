@@ -1,15 +1,18 @@
 package com.example.amsnew.service;
 
+import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,8 +20,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.example.amsnew.dto.AdminAttendanceDTO;
+import com.example.amsnew.dto.AdminAttendanceResponse;
 import com.example.amsnew.dto.DepartmentAttendanceDTO;
-import com.example.amsnew.dto.LoginRequest;
+import com.example.amsnew.dto.EmployeeAttendanceResponse;
 import com.example.amsnew.model.ActivityPulse;
 import com.example.amsnew.model.ActivityType;
 import com.example.amsnew.model.Attendance;
@@ -34,7 +38,7 @@ import com.example.amsnew.repository.ActivityPulseRepository;
 import com.example.amsnew.repository.AttendanceRepository;
 import com.example.amsnew.repository.DailyAttendanceStatusRepo;
 import com.example.amsnew.repository.DepartmentRepository;
-import com.example.amsnew.repository.ShiftRepo;
+import com.example.amsnew.repository.HolidayRepo;
 import com.example.amsnew.repository.UserRepository;
 import com.example.amsnew.repository.WorkSessionRepository;
 import com.example.amsnew.util.DateUtil;
@@ -51,8 +55,12 @@ public class AttendanceService {
        @Autowired
        private DepartmentRepository departmentRepo;
 
+//       @Autowired
+//       private ShiftRepo shiftRepo;
+       
        @Autowired
-       private ShiftRepo shiftRepo;
+       private HolidayRepo holidayRepo;
+
        
        @Autowired
        private WorkSessionRepository  workSessionRepo;
@@ -73,13 +81,7 @@ public class AttendanceService {
     	    LocalDate today = LocalDate.now();
     	    LocalDateTime now = LocalDateTime.now();
 
-    	    // Prevent multiple logins in a day
-    	    if (attendanceRepo
-    	            .findByEmployeeIdAndAttendanceDate(employeeId, today)
-    	            .isPresent()) {
-    	        return ResponseEntity.badRequest().body("Already logged in today");
-    	    }
-
+    	    // 1️⃣ Fetch employee
     	    Employees emp = userrepo.findByEmployeeId(employeeId)
     	            .orElseThrow(() -> new RuntimeException("Employee not found"));
 
@@ -87,34 +89,39 @@ public class AttendanceService {
     	    if (shift == null) {
     	        return ResponseEntity.badRequest().body("Shift not assigned. Contact admin.");
     	    }
-    	
 
-    	    // -------- Attendance --------
-    	    Attendance attendance = new Attendance();
-    	    attendance.setEmployee(emp);
-    	    attendance.setEmployeeId(employeeId);
-    	    attendance.setShift(shift);
-    	    attendance.setAttendanceDate(today);
-    	    attendance.setLogin(now);
+    	    // 2️⃣ Prevent multiple punch-ins for the same day
+    	    boolean alreadyLoggedIn =
+    	            attendanceRepo.findByEmployee_EmployeeIdAndAttendanceDate(employeeId, today)
+    	                    .isPresent();
 
+    	    if (alreadyLoggedIn) {
+    	        return ResponseEntity.badRequest().body("Already logged in today");
+    	    }
+
+    	    // 3️⃣ Calculate late minutes
     	    LocalTime shiftStartWithGrace =
     	            shift.getStartTime().plusMinutes(shift.getGraceMinutes());
 
+    	    long lateMinutes = 0;
     	    if (now.toLocalTime().isAfter(shiftStartWithGrace)) {
-    	        long lateMinutes =
-    	                Duration.between(shiftStartWithGrace, now.toLocalTime()).toMinutes();
-    	        attendance.setLateMinutes(lateMinutes);
-    	        attendance.setStatus(AttendanceStatus.LATE);
-    	    } else {
-    	        attendance.setLateMinutes(0);
-    	        attendance.setStatus(AttendanceStatus.PRESENT);
+    	        lateMinutes = Duration
+    	                .between(shiftStartWithGrace, now.toLocalTime())
+    	                .toMinutes();
     	    }
+    	    // 4️⃣ Create Attendance (RAW PUNCH DATA)
+    	    Attendance attendance = new Attendance();
+    	    attendance.setEmployee(emp);
+    	    attendance.setShift(shift);
+    	    attendance.setAttendanceDate(today);
+    	    attendance.setLogin(now);
+    	    attendance.setLateMinutes(lateMinutes);
+    	    attendance.setStatus(AttendanceStatus.PRESENT); // ✅ ALWAYS PRESENT if logged in
 
-    	 
 
     	    Attendance savedAttendance = attendanceRepo.save(attendance);
 
-    	    // -------- Work Session --------
+    	    // 5️⃣ Start WORK session
     	    WorkSession workSession = new WorkSession();
     	    workSession.setEmployee(emp);
     	    workSession.setAttendance(savedAttendance);
@@ -122,160 +129,197 @@ public class AttendanceService {
     	    workSession.setSessionType(SessionType.WORK);
     	    workSessionRepo.save(workSession);
 
-    	    // -------- Daily Attendance Status --------
+    	    // 6️⃣ Create Daily Attendance Status (FINAL DAILY VIEW)
     	    DailyAttendanceStatus daily = new DailyAttendanceStatus();
     	    daily.setEmployee(emp);
     	    daily.setAttendance(savedAttendance);
     	    daily.setAttendanceDate(today);
     	    daily.setLoginTime(now);
-    	    daily.setLateMinutes(attendance.getLateMinutes());
+    	    daily.setLateMinutes(lateMinutes);
+
     	    daily.setStatus(
-    	            workFromHome ? DailyStatus.WORK_FROM_HOME : DailyStatus.PRESENT
+    	            workFromHome
+    	                    ? DailyStatus.WORK_FROM_HOME
+    	                    : DailyStatus.PRESENT
     	    );
 
     	    dailyStatusRepo.save(daily);
 
-
-    	    return ResponseEntity.ok(Map.of(
-    	            "message", "Login successful",
-    	            "employeeId", employeeId,
-    	            "loginTime", now,
-    	            "attendanceStatus", attendance.getStatus(),
-    	            "dailyStatus", daily.getStatus()
-    	    ));
+    	    // 7️⃣ Response
+    	    return ResponseEntity.ok(
+    	            Map.of(
+    	                    "message", "Login successful",
+    	                    "employeeId", employeeId,
+    	                    "loginTime", now,
+    	                    "present", true,
+    	                    "lateMinutes", lateMinutes,
+    	                    "dailyStatus", daily.getStatus()
+    	            )
+    	    );
     	}
+
 
 
        public ResponseEntity<?> logoutByEmployeeId(String employeeId) {
 
-           Attendance attendance = attendanceRepo
-                   .findByEmployeeIdAndLogoutIsNull(employeeId)
-                   .orElseThrow(() -> new RuntimeException("No active login found"));
+    	    if (employeeId == null || employeeId.isBlank()) {
+    	        return ResponseEntity.badRequest().body("Employee ID is required");
+    	    }
 
-           Shift shift = attendance.getShift();
-           if (shift == null) {
-               return ResponseEntity.badRequest().body("Shift not assigned");
-           }
-
-           LocalDateTime now = LocalDateTime.now();
-
-           LocalDateTime shiftEnd = LocalDateTime.of(
-                   attendance.getAttendanceDate(), shift.getEndTime());
-
-           if (shift.getEndTime().isBefore(shift.getStartTime())) {
-               shiftEnd = shiftEnd.plusDays(1);
-           }
-
-           if (now.isBefore(shiftEnd)) {
-               return ResponseEntity.badRequest()
-                       .body("Logout disabled until shift ends at " + shiftEnd.toLocalTime());
-           }
-
-           attendance.setLogout(now);
-           attendance.setStatus(AttendanceStatus.LOGGED_OUT);
-
-           long overtime = now.isAfter(shiftEnd)
-                   ? Duration.between(shiftEnd, now).toMinutes()
-                   : 0;
-           attendance.setOvertime(overtime);
-
-           Attendance saved = attendanceRepo.save(attendance);
-
-           WorkSession activeSession = workSessionRepo
-                   .findByEmployee_EmployeeIdAndEndTimeIsNull(employeeId)
-                   .orElseThrow(() -> new RuntimeException("No active session"));
-           activeSession.setEndTime(now);
-           workSessionRepo.save(activeSession);
-
-           
-           
-           // -------- Daily Attendance Status --------
-           DailyAttendanceStatus daily =
-        	        dailyStatusRepo
-        	            .findByEmployeeAndAttendanceDate(
-        	                attendance.getEmployee(),
-        	                attendance.getAttendanceDate()
-        	            )
-        	            .orElseThrow(() -> new RuntimeException("Daily status not found"));
-
-        	daily.setLogoutTime(now);
-        	daily.setOvertimeMinutes(overtime);
-
-        	// calculate totals
-        	Duration totalWork =
-        	        calculateTotalWorkTime(employeeId, attendance.getAttendanceDate());
-
-        	Duration totalBreak =
-        	        calculateTotalBreakTime(employeeId, attendance.getAttendanceDate());
-
-        	daily.setTotalWorkMinutes(totalWork.toMinutes());
-        	daily.setTotalBreakMinutes(totalBreak.toMinutes());
-
-        	dailyStatusRepo.save(daily);
+    	    // 1️⃣ Find active attendance (logged in but not logged out)
+    	    Attendance attendance = attendanceRepo
+    	            .findByEmployee_EmployeeIdAndLogoutIsNull(employeeId)
+    	            .orElseThrow(() -> new RuntimeException("No active login found"));
 
 
-           return ResponseEntity.ok(Map.of(
-                   "message", "Logout successful",
-                   "logoutTime", now,
-                   "overtimeMinutes", overtime
-           ));
-       }
+    	    Shift shift = attendance.getShift();
+    	    if (shift == null) {
+    	        return ResponseEntity.badRequest().body("Shift not assigned");
+    	    }
 
-       public ResponseEntity<?>  fetchAttendance(String employeeId,String date)
-       {
-    	   
-    	   LocalDate parsedDate =null;
-    	   
-    	   if(date != null && !date.isBlank())
-    	   {
-    		   parsedDate =DateUtil.parseDate(date);
-    	   }
-    	   
-    	   if(employeeId == null && parsedDate==null)
-    	   {
-    		   List<Attendance> list=attendanceRepo.findAll();
-    		   
-    		   if(list.isEmpty())
-    		   {
-    			   return ResponseEntity.ok("No attendance record found");
-    		   }
-    		   return ResponseEntity.ok(list);
-    	   }
-    	   if(employeeId == null && parsedDate != null)
-    	   {
-    		   List<Attendance> list=attendanceRepo.findByAttendanceDate(parsedDate);
-    		   if(list.isEmpty())
-    		   {
-    			   return ResponseEntity.badRequest().body("No attendance found for date: "+ parsedDate);
-    		   }
-    		   return ResponseEntity.ok(list);
-    	   }
-    	   
-    	   if(employeeId != null && parsedDate == null)
-    	   {
-    		   List<Attendance> list=attendanceRepo.findByEmployeeId(employeeId);
-    		   
-    		   if(list.isEmpty())
-    		   {
-    			   return ResponseEntity.badRequest().body("No attendance found for employeeId: "+ employeeId);
-    		   }
-    		   return ResponseEntity.ok(list);
-    	   }
-    	   
-    	   Optional <Attendance> attendance=attendanceRepo.findByEmployeeIdAndAttendanceDate(employeeId, parsedDate);
-    	   
-    	   if(attendance.isEmpty())
-    	   {
-    		   return ResponseEntity.badRequest().body("No attendance found for employeeId: "+ employeeId+" No attendance found for date: "+ date);
-    	   }
-    	   
-    	   return ResponseEntity.ok(attendance.get());
-       }
-       
-       
- 
-       
-       
+    	    LocalDateTime now = LocalDateTime.now();
+
+    	    // 2️⃣ Calculate shift end (handles night shift also)
+    	    LocalDateTime shiftEnd = LocalDateTime.of(
+    	            attendance.getAttendanceDate(),
+    	            shift.getEndTime()
+    	    );
+
+    	    if (shift.getEndTime().isBefore(shift.getStartTime())) {
+    	        shiftEnd = shiftEnd.plusDays(1);
+    	    }
+
+    	    // 3️⃣ Logout (ALLOWED ANYTIME)
+    	    attendance.setLogout(now);
+
+    	    // ✅ Attendance remains PRESENT (do NOT change to LOGGED_OUT)
+    	    attendance.setStatus(AttendanceStatus.PRESENT);
+
+    	    // 4️⃣ Calculate overtime (only if after shift end)
+    	    long overtimeMinutes = 0;
+    	    if (now.isAfter(shiftEnd)) {
+    	        overtimeMinutes = Duration.between(shiftEnd, now).toMinutes();
+    	    }
+    	    attendance.setOvertimeMinutes(overtimeMinutes);
+
+    	    attendanceRepo.save(attendance);
+
+    	    // 5️⃣ Close active work session
+    	    WorkSession activeSession = workSessionRepo
+    	            .findByEmployee_EmployeeIdAndEndTimeIsNull(employeeId)
+    	            .orElseThrow(() -> new RuntimeException("No active work session"));
+
+    	    activeSession.setEndTime(now);
+    	    workSessionRepo.save(activeSession);
+
+    	    // 6️⃣ Update Daily Attendance Status
+    	    DailyAttendanceStatus daily = dailyStatusRepo
+    	            .findByEmployeeAndAttendanceDate(
+    	                    attendance.getEmployee(),
+    	                    attendance.getAttendanceDate()
+    	            )
+    	            .orElseThrow(() -> new RuntimeException("Daily status not found"));
+
+    	    daily.setLogoutTime(now);
+    	    daily.setOvertimeMinutes(overtimeMinutes);
+
+    	    // 7️⃣ Calculate totals
+    	    Duration totalWork =
+    	            calculateTotalWorkTime(employeeId, attendance.getAttendanceDate());
+
+    	    Duration totalBreak =
+    	            calculateTotalBreakTime(employeeId, attendance.getAttendanceDate());
+
+    	    daily.setTotalWorkMinutes(totalWork.toMinutes());
+    	    daily.setTotalBreakMinutes(totalBreak.toMinutes());
+
+    	    dailyStatusRepo.save(daily);
+
+    	    // 8️⃣ Response
+    	    return ResponseEntity.ok(
+    	            Map.of(
+    	                    "message", "Logout successful",
+    	                    "logoutTime", now,
+    	                    "overtimeMinutes", overtimeMinutes,
+    	                    "totalWorkMinutes", totalWork.toMinutes()
+    	            )
+    	    );
+    	}
+
+
+       public ResponseEntity<?> fetchAttendance(String employeeId, String date) {
+
+    	    LocalDate parsedDate = null;
+
+    	    if (date != null && !date.isBlank()) {
+    	        parsedDate = DateUtil.parseDate(date);
+    	    }
+
+    	    // ================= CASE 1: employeeId + date (Dashboard) =================
+    	    if (employeeId != null && parsedDate != null) {
+
+    	        Optional<Attendance> attendanceOpt =
+    	                attendanceRepo.findByEmployee_EmployeeIdAndAttendanceDate(
+    	                        employeeId, parsedDate);
+
+    	        Optional<DailyAttendanceStatus> dailyOpt =
+    	                dailyStatusRepo.findByEmployee_EmployeeIdAndAttendanceDate(
+    	                        employeeId, parsedDate);
+
+    	        if (attendanceOpt.isEmpty() && dailyOpt.isEmpty()) {
+    	            return ResponseEntity.badRequest().body(
+    	                    "No attendance found for employeeId: " +
+    	                    employeeId + " on date: " + parsedDate
+    	            );
+    	        }
+
+    	        Map<String, Object> response = new HashMap<>();
+    	        response.put("attendance", attendanceOpt.orElse(null));
+    	        response.put("dailyStatus", dailyOpt.orElse(null));
+
+    	        return ResponseEntity.ok(response);
+    	    }
+
+    	    // ================= CASE 2: employeeId only =================
+    	    if (employeeId != null) {
+
+    	        List<Attendance> list =
+    	                attendanceRepo.findByEmployee_EmployeeId(employeeId);
+
+    	        if (list.isEmpty()) {
+    	            return ResponseEntity.badRequest().body(
+    	                    "No attendance found for employeeId: " + employeeId
+    	            );
+    	        }
+
+    	        return ResponseEntity.ok(list);
+    	    }
+
+    	    // ================= CASE 3: date only =================
+    	    if (parsedDate != null) {
+
+    	        List<Attendance> list =
+    	                attendanceRepo.findByAttendanceDate(parsedDate);
+
+    	        if (list.isEmpty()) {
+    	            return ResponseEntity.badRequest().body(
+    	                    "No attendance found for date: " + parsedDate
+    	            );
+    	        }
+
+    	        return ResponseEntity.ok(list);
+    	    }
+
+    	    // ================= CASE 4: no filters =================
+    	    List<Attendance> list = attendanceRepo.findAll();
+
+    	    if (list.isEmpty()) {
+    	        return ResponseEntity.ok(List.of());
+    	    }
+
+    	    return ResponseEntity.ok(list);
+    	}
+
        
        public List<DepartmentAttendanceDTO> getDepartmentWiseAttendance(LocalDate date) {
 
@@ -285,27 +329,36 @@ public class AttendanceService {
     	    for (Department dept : departments) {
 
     	        long totalEmployees =
-    	            userrepo.countByDepartmentId(dept.getId());
+    	                userrepo.countByDepartmentId(dept.getId());
 
-    	        long present =attendanceRepo.countByEmployee_Department_IdAndAttendanceDateAndStatus(dept.getId(), date, AttendanceStatus.PRESENT);
+    	        // ✅ PRESENT = attendance exists
+    	        long present =
+    	                attendanceRepo.countByEmployee_Department_IdAndAttendanceDate(
+    	                        dept.getId(), date
+    	                );
 
-    	        long late =attendanceRepo.countByEmployee_Department_IdAndAttendanceDateAndStatus(dept.getId(), date, AttendanceStatus.LATE);
+    	        // ✅ LATE = present + lateMinutes > 0
+    	        long late =
+    	                attendanceRepo.countByEmployee_Department_IdAndAttendanceDateAndLateMinutesGreaterThan(
+    	                        dept.getId(), date, 0L
+    	                );
 
-    	        long absent = totalEmployees - (present + late);
+    	        long absent = totalEmployees - present;
 
     	        result.add(
-    	            new DepartmentAttendanceDTO(
-    	                dept.getDeptName(),
-    	                totalEmployees,
-    	                present,
-    	                late,
-    	                absent
-    	            )
+    	                new DepartmentAttendanceDTO(
+    	                        dept.getDeptName(),
+    	                        totalEmployees,
+    	                        present,
+    	                        late,
+    	                        absent
+    	                )
     	        );
     	    }
 
     	    return result;
     	}
+
 
         // BREAK, LUNCH 
        public ResponseEntity<?> startPause(String employeeId, SessionType type) {
@@ -486,8 +539,8 @@ public class AttendanceService {
     	    return ResponseEntity.ok("Permission recorded");
     	}
        
-       //Automatic Absent mark
-       @Scheduled(cron = "0 * * * * ?") 
+    // Automatic Absent / Holiday mark
+       @Scheduled(cron = "0 * * * * ?") // every minute
        public void autoMarkAbsentAfterOneHour() {
 
            LocalDate today = LocalDate.now();
@@ -500,48 +553,69 @@ public class AttendanceService {
                Shift shift = emp.getShift();
                if (shift == null) continue;
 
+               // 🔹 If already has daily status → skip
+               Optional<DailyAttendanceStatus> existing =
+                       dailyStatusRepo.findByEmployeeAndAttendanceDate(emp, today);
+
+               if (existing.isPresent()) {
+                   continue;
+               }
+
+               // 🔹 1️⃣ COMPANY HOLIDAY CHECK
+               boolean isHoliday = holidayRepo.existsByDate(today);
+
+               // 🔹 2️⃣ WEEKLY OFF CHECK (reuse existing method)
+               boolean isWeeklyOff =
+                       isWeeklyOff(today, shift);
+
+               if (isHoliday || isWeeklyOff) {
+
+                   DailyAttendanceStatus holiday = new DailyAttendanceStatus();
+                   holiday.setEmployee(emp);
+                   holiday.setAttendanceDate(today);
+                   holiday.setStatus(DailyStatus.HOLIDAY);
+
+                   dailyStatusRepo.save(holiday);
+                   continue; // ⛔ DO NOT mark absent
+               }
+
+               // 🔹 Shift start today
                LocalDateTime shiftStart =
                        LocalDateTime.of(today, shift.getStartTime());
 
+               // 🔹 1 hour grace
                LocalDateTime absentCutoff = shiftStart.plusHours(1);
 
                if (now.isBefore(absentCutoff)) {
                    continue;
                }
 
-               Optional<DailyAttendanceStatus> dailyOpt =
-                   dailyStatusRepo.findByEmployeeAndAttendanceDate(emp, today);
-
-               
-               if (dailyOpt.isPresent() && dailyOpt.get().getPermissionMinutes() != null && dailyOpt.get().getPermissionMinutes() > 0) {
-                   continue;
-               }
-
-               
-               if (dailyOpt.isPresent()) {
-                   continue;
-               }
-
-              
-               boolean loggedIn = attendanceRepo .findByEmployeeIdAndAttendanceDate(emp.getEmployeeId(), today).isPresent();
+               // 🔹 Check login
+               boolean loggedIn =
+                       attendanceRepo
+                           .findByEmployee_EmployeeIdAndAttendanceDate(
+                               emp.getEmployeeId(), today
+                           )
+                           .isPresent();
 
                if (!loggedIn) {
-            	    DailyAttendanceStatus absent = new DailyAttendanceStatus();
-            	    absent.setEmployee(emp);
-            	    absent.setAttendanceDate(today);
-            	    absent.setStatus(DailyStatus.ABSENT);
-            	    absent.setLoginTime(null);
-            	    absent.setLogoutTime(null);
-            	    absent.setLateMinutes(0L);
-            	    absent.setOvertimeMinutes(0L);
-            	    absent.setTotalWorkMinutes(0L);
-            	    absent.setTotalBreakMinutes(0L);
 
-            	    dailyStatusRepo.save(absent);
-            	}
+                   DailyAttendanceStatus absent = new DailyAttendanceStatus();
+                   absent.setEmployee(emp);
+                   absent.setAttendanceDate(today);
+                   absent.setStatus(DailyStatus.ABSENT);
 
+                   absent.setLateMinutes(0L);
+                   absent.setOvertimeMinutes(0L);
+                   absent.setTotalWorkMinutes(0L);
+                   absent.setTotalBreakMinutes(0L);
+                   absent.setPermissionMinutes(0L);
+
+                   dailyStatusRepo.save(absent);
+               }
            }
        }
+
        
        
        public ResponseEntity<?> getAllEmployeesDailyAttendance(
@@ -670,7 +744,171 @@ public class AttendanceService {
     	            "workFromHome", wfh
     	        )
     	    );
+       }
+       
+
+       public List<EmployeeAttendanceResponse> getEmployeeAttendance(String employeeId) {
+
+           List<Attendance> attendanceList =
+                   attendanceRepo.findByEmployee_EmployeeIdOrderByAttendanceDateDesc(employeeId);
+
+           List<DailyAttendanceStatus> dailyList =
+        		   dailyStatusRepo.findByEmployee_EmployeeIdOrderByAttendanceDateDesc(employeeId);
+
+           // Map DailyStatus by date for quick lookup
+           Map<LocalDate, DailyAttendanceStatus> dailyMap =
+                   dailyList.stream()
+                           .collect(Collectors.toMap(
+                                   DailyAttendanceStatus::getAttendanceDate,
+                                   d -> d
+                           ));
+
+           List<EmployeeAttendanceResponse> response = new ArrayList<>();
+
+           for (Attendance attendance : attendanceList) {
+
+               EmployeeAttendanceResponse dto = new EmployeeAttendanceResponse();
+               dto.setAttendanceDate(attendance.getAttendanceDate());
+
+               // Attendance
+               dto.setLogin(attendance.getLogin());
+               dto.setLogout(attendance.getLogout());
+               dto.setLateMinutes(attendance.getLateMinutes());
+               dto.setOvertimeMinutes(attendance.getOvertimeMinutes());
+               dto.setAttendanceStatus(attendance.getStatus());
+
+               // Daily status
+               DailyAttendanceStatus daily =
+                       dailyMap.get(attendance.getAttendanceDate());
+
+               if (daily != null) {
+                   dto.setDailyStatus(daily.getStatus());
+                   dto.setTotalWorkMinutes(daily.getTotalWorkMinutes());
+                   dto.setTotalBreakMinutes(daily.getTotalBreakMinutes());
+                   dto.setPermissionMinutes(daily.getPermissionMinutes());
+               }
+
+               response.add(dto);
+           }
+
+           return response;
+       }
+       
+       public List<AdminAttendanceResponse> getAllEmployeesAttendance() {
+
+           List<Attendance> attendanceList =
+                   attendanceRepo.findAllByOrderByAttendanceDateDesc();
+
+           List<DailyAttendanceStatus> dailyList =
+        		   dailyStatusRepo.findAll();
+
+           // 🔹 Map using employeeId + date as key
+           Map<String, DailyAttendanceStatus> dailyMap =
+                   dailyList.stream()
+                           .collect(Collectors.toMap(
+                                   d -> d.getEmployee().getEmployeeId()
+                                           + "_" + d.getAttendanceDate(),
+                                   d -> d
+                           ));
+
+           List<AdminAttendanceResponse> response = new ArrayList<>();
+
+           for (Attendance attendance : attendanceList) {
+
+               AdminAttendanceResponse dto = new AdminAttendanceResponse();
+
+               Employees emp = attendance.getEmployee();
+
+               dto.setEmployeeId(emp.getEmployeeId());
+               dto.setEmployeeName(emp.getFirstName() + " " + emp.getLastName());
+
+               dto.setAttendanceDate(attendance.getAttendanceDate());
+
+               // Attendance
+               dto.setLogin(attendance.getLogin());
+               dto.setLogout(attendance.getLogout());
+               dto.setLateMinutes(attendance.getLateMinutes());
+               dto.setOvertimeMinutes(attendance.getOvertimeMinutes());
+               dto.setAttendanceStatus(attendance.getStatus());
+
+               // Daily status
+               String key = emp.getEmployeeId()
+                       + "_" + attendance.getAttendanceDate();
+
+               DailyAttendanceStatus daily = dailyMap.get(key);
+
+               if (daily != null) {
+                   dto.setDailyStatus(daily.getStatus());
+                   dto.setTotalWorkMinutes(daily.getTotalWorkMinutes());
+                   dto.setTotalBreakMinutes(daily.getTotalBreakMinutes());
+                   dto.setPermissionMinutes(daily.getPermissionMinutes());
+               }
+
+               response.add(dto);
+           }
+
+           return response;
+       }
+       
+       //weekly off logic
+       public boolean isWeeklyOff(LocalDate date, Shift shift) {
+
+    	    DayOfWeek day = date.getDayOfWeek();
+
+    	    // Sunday
+    	    if (day == DayOfWeek.SUNDAY && shift.isSundayOff()) {
+    	        return true;
+    	    }
+
+    	    // Saturday
+    	    if (day == DayOfWeek.SATURDAY) {
+
+    	        if (shift.isAllSaturdayOff()) {
+    	            return true;
+    	        }
+
+    	        if (shift.isAlternateSaturdayOff()) {
+    	            int weekOfMonth = date.get(ChronoField.ALIGNED_WEEK_OF_MONTH);
+    	            return weekOfMonth == 2 || weekOfMonth == 4;
+    	        }
+    	    }
+
+    	    return false;
     	}
+       
+       //auto mark holiday/weekOff
+       @Scheduled(cron = "0 0 0 * * ?")
+       public void autoMarkHolidayAndWeekOff() {
+
+           LocalDate today = LocalDate.now();
+           List<Employees> employees = userrepo.findAll();
+
+           for (Employees emp : employees) {
+
+               Shift shift = emp.getShift();
+               if (shift == null) continue;
+
+               boolean isHoliday =
+                   holidayRepo.existsByDate(today);
+
+               boolean isWeeklyOff =
+                   isWeeklyOff(today, shift);
+
+               if (!isHoliday && !isWeeklyOff) continue;
+
+               boolean exists =
+                   dailyStatusRepo.findByEmployeeAndAttendanceDate(emp, today).isPresent();
+
+               if (exists) continue;
+
+               DailyAttendanceStatus daily = new DailyAttendanceStatus();
+               daily.setEmployee(emp);
+               daily.setAttendanceDate(today);
+               daily.setStatus(DailyStatus.HOLIDAY);
+
+               dailyStatusRepo.save(daily);
+           }
+       }
 
 
  }

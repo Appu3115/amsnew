@@ -18,50 +18,30 @@ public class DailyAttendanceStatus {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    // Employee reference
     @ManyToOne
     @JoinColumn(name = "employee_id", nullable = false)
     private Employees employee;
-    
-    
+
     @ManyToOne
     @JoinColumn(name = "attendance_id")
     private Attendance attendance;
 
-
-    public Attendance getAttendance() {
-		return attendance;
-	}
-	public void setAttendance(Attendance attendance) {
-		this.attendance = attendance;
-	}
-	// Attendance date
-    @Column(name = "attendance_date", nullable = false)
+    @Column(nullable = false)
     private LocalDate attendanceDate;
 
-    // PRESENT / ABSENT / WFH / PERMISSION
     @Enumerated(EnumType.STRING)
-    private DailyStatus status;
+    private DailyStatus status; // PRESENT / ABSENT / WFH / PERMISSION
 
-    // Login / Logout
     private LocalDateTime loginTime;
     private LocalDateTime logoutTime;
 
-    // Late & Overtime
     private Long lateMinutes;
     private Long overtimeMinutes;
 
-    // Permission (minutes)
     private Long permissionMinutes;
 
-    // Daily summary
     private Long totalWorkMinutes;
     private Long totalBreakMinutes;
-    
-    
-    
-    
-    
 	public Integer getId() {
 		return id;
 	}
@@ -73,6 +53,12 @@ public class DailyAttendanceStatus {
 	}
 	public void setEmployee(Employees employee) {
 		this.employee = employee;
+	}
+	public Attendance getAttendance() {
+		return attendance;
+	}
+	public void setAttendance(Attendance attendance) {
+		this.attendance = attendance;
 	}
 	public LocalDate getAttendanceDate() {
 		return attendanceDate;
@@ -128,9 +114,4 @@ public class DailyAttendanceStatus {
 	public void setTotalBreakMinutes(Long totalBreakMinutes) {
 		this.totalBreakMinutes = totalBreakMinutes;
 	}
-
-  
-    
-    
-    
 }

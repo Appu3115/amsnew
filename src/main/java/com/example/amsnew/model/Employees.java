@@ -45,7 +45,12 @@ public class Employees {
     @JoinColumn(name= "shift_id")
     private Shift shift;
 
-    @ManyToOne
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private EmployeeStatus status;
+
+
+	@ManyToOne
     @JoinColumn(name = "department_id", nullable = false)
     @JsonBackReference
     private Department department;
@@ -68,7 +73,14 @@ public class Employees {
 
     // -------- getters & setters --------
 
-    
+
+    public EmployeeStatus getStatus() {
+		return status;
+	}
+
+	public void setStatus(EmployeeStatus status) {
+		this.status = status;
+	}
     public Shift getShift() {
 		return shift;
 	}

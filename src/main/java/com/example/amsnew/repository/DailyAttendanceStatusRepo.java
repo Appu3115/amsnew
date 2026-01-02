@@ -33,5 +33,12 @@ public interface DailyAttendanceStatusRepo extends JpaRepository<DailyAttendance
     	            LocalDate end
     	    );
 
+    	    List<DailyAttendanceStatus> findAllByOrderByAttendanceDateDesc();
+
+			Optional<DailyAttendanceStatus> findByEmployee_EmployeeIdAndAttendanceDate(String employeeId,
+					LocalDate parsedDate);
+
+			List<DailyAttendanceStatus> findByEmployee_EmployeeIdOrderByAttendanceDateDesc(String employeeId);
+
 }
 

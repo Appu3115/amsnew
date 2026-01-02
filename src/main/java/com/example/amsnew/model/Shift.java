@@ -25,6 +25,11 @@ public class Shift {
     
     private String shiftName;
     
+    private boolean sundayOff;
+    private boolean allSaturdayOff;
+    private boolean alternateSaturdayOff;
+
+    
     
     public void setShiftName(String shiftName) {
 		this.shiftName = shiftName;
@@ -74,4 +79,30 @@ public class Shift {
 		// TODO Auto-generated method stub
 		return shiftName;
 	}
+
+	public boolean isSundayOff() {
+		return sundayOff;
+	}
+
+	public void setSundayOff(boolean sundayOff) {
+		this.sundayOff = sundayOff;
+	}
+
+	public boolean isAllSaturdayOff() {
+		return allSaturdayOff;
+	}
+
+	public void setAllSaturdayOff(boolean allSaturdayOff) {
+		this.allSaturdayOff = allSaturdayOff;
+	}
+
+	public boolean isAlternateSaturdayOff() {
+		return alternateSaturdayOff;
+	}
+
+	public void setAlternateSaturdayOff(boolean alternateSaturdayOff) {
+		this.alternateSaturdayOff = alternateSaturdayOff;
+	}
+
+	
 }
