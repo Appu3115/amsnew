@@ -110,11 +110,7 @@ public class AttendanceService {
     	        attendance.setStatus(AttendanceStatus.PRESENT);
     	    }
 
-    	    
-    	    System.out.println("Shift start: " + shift.getStartTime());
-    	    System.out.println("Grace minutes: " + shift.getGraceMinutes());
-    	    System.out.println("Login time: " + now.toLocalTime());
-    	    System.out.println("Shift start with grace: " + shiftStartWithGrace);
+    	 
 
     	    Attendance savedAttendance = attendanceRepo.save(attendance);
 

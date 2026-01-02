@@ -172,9 +172,6 @@ public class AttendanceController {
 	}
 
 
-	@GetMapping("/employeeid")
-    public ResponseEntity<?> fetchAttendanceById(@RequestParam String EmployeeId){
-	return attendanceService.fetchAttendanceById(EmployeeId);
-}
+
 
 }
